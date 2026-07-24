@@ -24,9 +24,10 @@ class RedirectByRole
         }
 
         $target = match ($user->role) {
-            User::ROLE_ADMIN    => route('admin.dashboard'),
-            User::ROLE_SUPPLIER => route('supplier.dashboard'),
-            User::ROLE_CUSTOMER => route('customer.dashboard'),
+            User::ROLE_ADMIN             => route('admin.dashboard'),
+            User::ROLE_INVENTORY_MANAGER => route('inventory-manager.dashboard'),
+            User::ROLE_SUPPLIER          => route('supplier.dashboard'),
+            User::ROLE_CUSTOMER          => route('customer.dashboard'),
             default             => null,
         };
 

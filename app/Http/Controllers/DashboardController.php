@@ -32,6 +32,19 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function inventoryManager(): Response
+    {
+        $stats = [
+            'totalProducts' => InventoryItem::count(),
+            'activeProducts'=> InventoryItem::active()->count(),
+            'lowStockCount' => \App\Models\Inventory::whereColumn('on_hand_qty', '<=', 'reorder_point')->where('reorder_point', '>', 0)->count(),
+        ];
+
+        return Inertia::render('InventoryManager/Dashboard', [
+            'stats' => $stats,
+        ]);
+    }
+
     public function supplier(Request $request): Response
     {
         $user = $request->user();

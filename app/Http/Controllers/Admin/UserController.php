@@ -36,7 +36,7 @@ class UserController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $validated = $request->validate([
-            'role' => ['required', 'string', 'in:admin,supplier,customer'],
+            'role' => ['required', 'string', 'in:admin,inventory_manager,supplier,customer'],
         ]);
 
         $user->update($validated);

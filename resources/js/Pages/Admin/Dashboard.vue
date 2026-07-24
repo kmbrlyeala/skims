@@ -57,9 +57,6 @@ const statusClass = (status) => ({
                         <Link :href="route('admin.orders')" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
                             <span class="text-base"></span> View All Orders
                         </Link>
-                        <Link :href="route('admin.inventory')" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-                            <span class="text-base"></span> View All Inventory
-                        </Link>
                     </div>
                 </div>
 

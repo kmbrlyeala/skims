@@ -27,6 +27,13 @@ class DatabaseSeeder extends Seeder
             'role'     => 'admin',
         ]);
 
+        $inventoryManager = User::factory()->create([
+            'name'     => 'Inventory Manager',
+            'email'    => 'inventory@skimshop.local',
+            'password' => 'password123',
+            'role'     => 'inventory_manager',
+        ]);
+
         $supplier = User::factory()->create([
             'name'     => 'Supplier User',
             'email'    => 'supplier@supplier.local',

@@ -18,9 +18,10 @@ class User extends Authenticatable
     /**
      * Role constants to avoid magic strings.
      */
-    public const ROLE_ADMIN    = 'admin';
-    public const ROLE_SUPPLIER = 'supplier';
-    public const ROLE_CUSTOMER = 'customer';
+    public const ROLE_ADMIN             = 'admin';
+    public const ROLE_INVENTORY_MANAGER = 'inventory_manager';
+    public const ROLE_SUPPLIER          = 'supplier';
+    public const ROLE_CUSTOMER          = 'customer';
 
     /** @use HasFactory<UserFactory> */
     use HasFactory;
@@ -107,5 +108,13 @@ class User extends Authenticatable
     public function inventoryItems(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(InventoryItem::class, 'supplier_id');
+    }
+
+    /**
+     * Factory (Supplier record) this user represents.
+     */
+    public function supplierFactory(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

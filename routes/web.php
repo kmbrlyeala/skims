@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminInventoryController;
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Customer\CartController;
@@ -58,7 +57,37 @@ Route::middleware([
             Route::get('/users', [UserController::class, 'index'])->name('users');
             Route::put('/users/{user}', [UserController::class, 'updateRole'])->name('users.updateRole');
             Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
-            Route::get('/inventory', [AdminInventoryController::class, 'index'])->name('inventory');
+            // Supply Chain Routes
+            Route::resource('suppliers', \App\Http\Controllers\Admin\SupplyChain\SupplierController::class)->except(['create', 'edit']);
+            Route::post('suppliers/{supplier}/link-product', [\App\Http\Controllers\Admin\SupplyChain\SupplierController::class, 'linkProduct'])->name('suppliers.link-product');
+            Route::delete('suppliers/{supplier}/products/{product}/unlink', [\App\Http\Controllers\Admin\SupplyChain\SupplierController::class, 'unlinkProduct'])->name('suppliers.unlink-product');
+
+            Route::resource('products', \App\Http\Controllers\Admin\SupplyChain\ProductController::class)->except(['show']);
+
+            Route::resource('purchase-requests', \App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class)->except(['show', 'edit', 'update', 'destroy']);
+            Route::post('purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
+            Route::post('purchase-requests/{purchaseRequest}/reject', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
+
+            Route::get('purchase-orders', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+            Route::get('purchase-orders/{purchaseOrder}', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
+        });
+
+    /*
+    |----------------------------------------------------------------------
+    | Inventory Manager Routes
+    |----------------------------------------------------------------------
+    */
+    Route::middleware(EnsureUserRole::class.':inventory_manager')
+        ->prefix('inventory-manager')
+        ->name('inventory-manager.')
+        ->group(function () {
+            Route::get('/', [DashboardController::class, 'inventoryManager'])->name('dashboard');
+
+            Route::get('goods-receipts/create', [\App\Http\Controllers\InventoryManager\GoodsReceiptController::class, 'create'])->name('goods-receipts.create');
+            Route::post('goods-receipts', [\App\Http\Controllers\InventoryManager\GoodsReceiptController::class, 'store'])->name('goods-receipts.store');
+
+            Route::get('supply-inventory', [\App\Http\Controllers\InventoryManager\InventoryController::class, 'index'])->name('supply-inventory.index');
+            Route::patch('supply-inventory/{inventory}', [\App\Http\Controllers\InventoryManager\InventoryController::class, 'update'])->name('supply-inventory.update');
         });
 
     /*
@@ -77,6 +106,7 @@ Route::middleware([
             Route::delete('/inventory/{item}', [SupplierInventoryController::class, 'destroy'])->name('inventory.destroy');
             Route::get('/orders', [SupplierOrderController::class, 'index'])->name('orders');
             Route::put('/orders/{orderItem}', [SupplierOrderController::class, 'updateStatus'])->name('orders.updateStatus');
+            Route::get('/purchase-requests', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         });
 
     /*
