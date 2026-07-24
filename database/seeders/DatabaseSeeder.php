@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // --- Suppliers (Factories) ---
+        $supplierModel1 = Supplier::create([
+            'name'            => 'SKIMS Beauty Factory',
+            'contact_name'    => 'Sarah Johnson',
+            'contact_email'   => 'sarah.j@skims-beauty.example',
+            'source_platform' => 'local_factory',
+            'lead_time_days'  => 14,
+            'notes'           => 'In-house manufacturing for all SKIMS beauty essentials.',
+            'is_active'       => true,
+        ]);
+
+        $supplierModel2 = Supplier::create([
+            'name'            => 'SKIMS Hygiene Labs',
+            'contact_name'    => 'Dr. Emma Stone',
+            'contact_email'   => 'emma.s@skims-hygiene.example',
+            'source_platform' => 'local_factory',
+            'lead_time_days'  => 10,
+            'notes'           => 'In-house manufacturing for all SKIMS hygiene products.',
+            'is_active'       => true,
+        ]);
+
         // --- Users ---
         $admin = User::factory()->create([
             'name'     => 'Admin User',
@@ -35,17 +57,19 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $supplier = User::factory()->create([
-            'name'     => 'Supplier User',
-            'email'    => 'supplier@supplier.local',
-            'password' => 'password123',
-            'role'     => 'supplier',
+            'name'        => 'Supplier User',
+            'email'       => 'supplier@supplier.local',
+            'password'    => 'password123',
+            'role'        => 'supplier',
+            'supplier_id' => $supplierModel1->id,
         ]);
 
         $supplier2 = User::factory()->create([
-            'name'     => 'Glow Botanics',
-            'email'    => 'glow@supplier.local',
-            'password' => 'password123',
-            'role'     => 'supplier',
+            'name'        => 'Glow Botanics',
+            'email'       => 'glow@supplier.local',
+            'password'    => 'password123',
+            'role'        => 'supplier',
+            'supplier_id' => $supplierModel2->id,
         ]);
 
         $customer = User::factory()->create([
