@@ -216,39 +216,10 @@ const buyNow = () => {
                             </button>
                         </div>
 
-                        <!-- Details Rows (Shipping, Guarantee, Quantity) -->
+                        <!-- Quantity Row -->
                         <div class="py-4 space-y-4 text-xs text-slate-600">
-                            <!-- Shipping Row -->
-                            <div class="flex items-start gap-4">
-                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Shipping</span>
-                                <div class="space-y-1">
-                                    <div class="flex items-center gap-1.5 font-bold text-emerald-600">
-                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25v11.25m0-11.25H7.875c-.621 0-1.125.504-1.125 1.125V14.25" />
-                                        </svg>
-                                        <span>26 - 28 Jul</span>
-                                        <svg class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
-                                    </div>
-                                    <p class="font-semibold text-slate-800">Free shipping</p>
-                                    <p class="text-[11px] text-slate-400">Get up to ₱40 if order arrives late</p>
-                                </div>
-                            </div>
-
-                            <!-- Shopping Guarantee Row -->
-                            <div class="flex items-center gap-4 border-t border-slate-100 pt-3.5">
-                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Shopping Guarantee</span>
-                                <div class="flex items-center gap-1.5 font-bold text-orange-600">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                                    </svg>
-                                    <span>Free & Easy Returns</span>
-                                    <svg class="h-3 w-3 text-slate-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                                </div>
-                            </div>
-
-                            <!-- Quantity Row -->
-                            <div class="flex items-center gap-4 border-t border-slate-100 pt-3.5">
-                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Quantity</span>
+                            <div class="flex items-center gap-4">
+                                <span class="w-24 flex-shrink-0 font-medium text-slate-400">Quantity</span>
                                 <div class="flex items-center gap-3">
                                     <div class="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm">
                                         <button
