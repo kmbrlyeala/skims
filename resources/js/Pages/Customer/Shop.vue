@@ -9,6 +9,10 @@ const props = defineProps({
 });
 
 const search = ref(props.filters?.search || '');
+const selectedProduct = ref(null);
+const quantity = ref(1);
+const isModalOpen = ref(false);
+const isSubmitting = ref(false);
 
 const applyFilters = () => {
     router.get(route('customer.shop'), {
@@ -16,11 +20,69 @@ const applyFilters = () => {
     }, { preserveState: true, replace: true });
 };
 
-const addToCart = (productId) => {
+const openQuantityModal = (product) => {
+    if (product.stock < 1) return;
+    selectedProduct.value = product;
+    quantity.value = 1;
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    isModalOpen.value = false;
+    selectedProduct.value = null;
+    quantity.value = 1;
+};
+
+const incrementQuantity = () => {
+    if (selectedProduct.value && quantity.value < selectedProduct.value.stock) {
+        quantity.value++;
+    }
+};
+
+const decrementQuantity = () => {
+    if (quantity.value > 1) {
+        quantity.value--;
+    }
+};
+
+const confirmAddToCart = () => {
+    if (!selectedProduct.value || isSubmitting.value) return;
+
+    let finalQty = Math.max(1, Math.min(quantity.value || 1, selectedProduct.value.stock));
+
+    isSubmitting.value = true;
     router.post(route('customer.cart.store'), {
-        inventory_item_id: productId,
-        quantity: 1,
-    }, { preserveState: true });
+        inventory_item_id: selectedProduct.value.id,
+        quantity: finalQty,
+    }, {
+        preserveState: true,
+        onSuccess: () => {
+            closeModal();
+        },
+        onFinish: () => {
+            isSubmitting.value = false;
+        }
+    });
+};
+
+const buyNow = () => {
+    if (!selectedProduct.value || isSubmitting.value) return;
+
+    let finalQty = Math.max(1, Math.min(quantity.value || 1, selectedProduct.value.stock));
+
+    isSubmitting.value = true;
+    router.post(route('customer.orders.store'), {
+        inventory_item_id: selectedProduct.value.id,
+        quantity: finalQty,
+    }, {
+        preserveState: false,
+        onSuccess: () => {
+            closeModal();
+        },
+        onFinish: () => {
+            isSubmitting.value = false;
+        }
+    });
 };
 </script>
 
@@ -50,32 +112,40 @@ const addToCart = (productId) => {
 
             <!-- Product Grid -->
             <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <div v-for="product in products.data" :key="product.id" class="product-card group">
-                    <div class="aspect-square overflow-hidden bg-slate-100">
-                        <img
-                            v-if="product.image_url"
-                            :src="product.image_url"
-                            :alt="product.name"
-                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div v-else class="flex h-full items-center justify-center text-3xl text-slate-300">✦</div>
+                <div v-for="product in products.data" :key="product.id" class="product-card group flex flex-col justify-between">
+                    <div>
+                        <div class="aspect-square overflow-hidden bg-slate-100">
+                            <img
+                                v-if="product.image_url"
+                                :src="product.image_url"
+                                :alt="product.name"
+                                class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                            <div v-else class="flex h-full items-center justify-center text-3xl text-slate-300">✦</div>
+                        </div>
+                        <div class="p-4 pb-0">
+                            <p class="text-xs font-medium text-slate-400">{{ product.supplier?.name }}</p>
+                            <h3 class="mt-0.5 font-semibold text-slate-900">{{ product.name }}</h3>
+                            <p v-if="product.description" class="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
+                                {{ product.description }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="p-4">
-                        <p class="text-xs font-medium text-slate-400">{{ product.supplier?.name }}</p>
-                        <h3 class="mt-0.5 font-semibold text-slate-900">{{ product.name }}</h3>
-                        <p v-if="product.description" class="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
-                            {{ product.description }}
-                        </p>
-                        <div class="mt-3 flex items-center justify-between">
+
+                    <div class="p-4 pt-3">
+                        <div class="flex items-center justify-between">
                             <p class="text-lg font-bold text-slate-900">₱{{ Number(product.price).toFixed(2) }}</p>
                             <button
-                                @click="addToCart(product.id)"
-                                class="rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105"
+                                @click="openQuantityModal(product)"
+                                :disabled="product.stock < 1"
+                                class="rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                Add to Cart
+                                {{ product.stock < 1 ? 'Out of Stock' : 'Add to Cart' }}
                             </button>
                         </div>
-                        <p class="mt-1.5 text-[10px] text-slate-400">{{ product.stock }} in stock</p>
+                        <p class="mt-1.5 text-[10px] font-medium" :class="product.stock > 0 ? 'text-slate-400' : 'text-rose-500 font-bold'">
+                            {{ product.stock > 0 ? `${product.stock} in stock` : 'Out of stock' }}
+                        </p>
                     </div>
                 </div>
             </div>
@@ -99,5 +169,157 @@ const addToCart = (productId) => {
                 />
             </div>
         </div>
+
+        <!-- E-Commerce Style Centered Dialog Modal -->
+        <Teleport to="body">
+            <div
+                v-if="isModalOpen && selectedProduct"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+            >
+                <!-- Backdrop -->
+                <div
+                    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+                    @click="closeModal"
+                ></div>
+
+                <!-- Centered Modal Box -->
+                <div
+                    class="relative z-10 w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl border border-slate-100 transition-all duration-300 my-auto"
+                >
+                    <!-- Header with Product summary & Close button -->
+                    <div class="p-6 pb-4">
+                        <div class="flex items-start justify-between border-b border-slate-100 pb-4">
+                            <div class="flex items-center gap-3.5">
+                                <div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-50 border border-slate-200/60">
+                                    <img
+                                        v-if="selectedProduct.image_url"
+                                        :src="selectedProduct.image_url"
+                                        :alt="selectedProduct.name"
+                                        class="h-full w-full object-cover"
+                                    />
+                                    <div v-else class="flex h-full items-center justify-center text-xl text-slate-300">✦</div>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-base leading-snug line-clamp-2">{{ selectedProduct.name }}</h4>
+                                    <p class="text-lg font-extrabold text-orange-600 mt-0.5">
+                                        ₱{{ Number(selectedProduct.price).toFixed(2) }}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                @click="closeModal"
+                                class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                            >
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Details Rows (Shipping, Guarantee, Quantity) -->
+                        <div class="py-4 space-y-4 text-xs text-slate-600">
+                            <!-- Shipping Row -->
+                            <div class="flex items-start gap-4">
+                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Shipping</span>
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-1.5 font-bold text-emerald-600">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.25v11.25m0-11.25H7.875c-.621 0-1.125.504-1.125 1.125V14.25" />
+                                        </svg>
+                                        <span>26 - 28 Jul</span>
+                                        <svg class="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+                                    </div>
+                                    <p class="font-semibold text-slate-800">Free shipping</p>
+                                    <p class="text-[11px] text-slate-400">Get up to ₱40 if order arrives late</p>
+                                </div>
+                            </div>
+
+                            <!-- Shopping Guarantee Row -->
+                            <div class="flex items-center gap-4 border-t border-slate-100 pt-3.5">
+                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Shopping Guarantee</span>
+                                <div class="flex items-center gap-1.5 font-bold text-orange-600">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                                    </svg>
+                                    <span>Free & Easy Returns</span>
+                                    <svg class="h-3 w-3 text-slate-400 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                                </div>
+                            </div>
+
+                            <!-- Quantity Row -->
+                            <div class="flex items-center gap-4 border-t border-slate-100 pt-3.5">
+                                <span class="w-32 flex-shrink-0 font-medium text-slate-400">Quantity</span>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm">
+                                        <button
+                                            type="button"
+                                            @click="decrementQuantity"
+                                            :disabled="quantity <= 1"
+                                            class="flex h-9 w-9 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-30 rounded-l-xl"
+                                        >
+                                            −
+                                        </button>
+                                        <input
+                                            type="number"
+                                            v-model.number="quantity"
+                                            min="1"
+                                            :max="selectedProduct.stock"
+                                            class="h-9 w-14 border-y-0 border-x border-slate-200 p-0 text-center text-xs font-bold text-slate-900 focus:ring-0"
+                                        />
+                                        <button
+                                            type="button"
+                                            @click="incrementQuantity"
+                                            :disabled="quantity >= selectedProduct.stock"
+                                            class="flex h-9 w-9 items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-30 rounded-r-xl"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                        {{ selectedProduct.stock }} IN STOCK
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Total Subtotal Card -->
+                            <div class="mt-3 flex items-center justify-between rounded-2xl bg-orange-50/70 p-3.5 border border-orange-100">
+                                <span class="text-xs font-semibold text-slate-600">Total Subtotal:</span>
+                                <span class="text-lg font-extrabold text-orange-600">
+                                    ₱{{ ((quantity || 1) * Number(selectedProduct.price)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action Buttons (Add To Cart & Buy Now) -->
+                    <div class="border-t border-slate-100 p-6 bg-slate-50/60 rounded-b-3xl">
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Add To Cart Button -->
+                            <button
+                                type="button"
+                                @click="confirmAddToCart"
+                                :disabled="isSubmitting || selectedProduct.stock < 1"
+                                class="flex items-center justify-center gap-1.5 rounded-xl border border-orange-500 bg-orange-50/90 py-3 text-xs font-bold text-orange-600 transition-all hover:bg-orange-100 active:scale-95 disabled:opacity-50 shadow-sm"
+                            >
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                </svg>
+                                <span>Add To Cart</span>
+                            </button>
+
+                            <!-- Buy Now Button -->
+                            <button
+                                type="button"
+                                @click="buyNow"
+                                :disabled="isSubmitting || selectedProduct.stock < 1"
+                                class="flex items-center justify-center rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 py-3 text-xs font-bold text-white shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95 disabled:opacity-50"
+                            >
+                                <span>Buy Now</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </AppLayout>
 </template>
