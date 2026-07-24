@@ -54,7 +54,7 @@ const reorderNeeded = (stock) => stock <= props.reorderThreshold;
                 </div>
             </div>
 
-            <div class="grid gap-4 lg:grid-cols-[1.5fr_1fr]">
+            <div class="grid gap-4">
                 <div class="glass-card">
                     <div class="mb-4 flex items-center justify-between">
                         <div>
@@ -100,28 +100,6 @@ const reorderNeeded = (stock) => stock <= props.reorderThreshold;
                     </div>
 
                     <p v-else class="py-6 text-center text-sm text-slate-400">No beauty essentials available.</p>
-                </div>
-
-                <div class="glass-card lg:col-span-1">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Recent Purchase Orders</h2>
-                        <Link :href="route('supplier.orders')" class="text-xs font-semibold text-pink-600 hover:text-pink-700">View all →</Link>
-                    </div>
-                    <div v-if="stats.recentOrders?.length" class="space-y-2">
-                        <div v-for="item in stats.recentOrders" :key="item.id" class="flex items-center justify-between rounded-xl bg-slate-50/80 px-4 py-3">
-                            <div>
-                                <p class="text-sm font-medium text-slate-800">{{ item.inventory_item?.name }}</p>
-                                <p class="text-xs text-slate-500">
-                                    PO {{ item.order?.order_number || `#${item.id}` }} · Qty: {{ item.quantity }}
-                                </p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-semibold text-slate-800">₱{{ (item.price * item.quantity).toFixed(2) }}</p>
-                                <span class="badge" :class="statusClass(item.order?.status)">{{ item.order?.status || 'Pending' }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <p v-else class="py-6 text-center text-sm text-slate-400">No purchase orders yet</p>
                 </div>
             </div>
         </div>
