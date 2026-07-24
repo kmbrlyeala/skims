@@ -34,7 +34,7 @@ const reorderNeeded = (stock) => stock <= props.reorderThreshold;
                 <p class="mt-1 text-sm text-slate-500">Your products and sales at a glance</p>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="stat-card">
                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">My Products</p>
                     <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalProducts }}</p>
@@ -47,10 +47,6 @@ const reorderNeeded = (stock) => stock <= props.reorderThreshold;
                 <div class="stat-card">
                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Orders</p>
                     <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalOrders }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Revenue</p>
-                    <p class="mt-2 text-3xl font-bold text-emerald-600">₱{{ Number(stats.totalRevenue).toFixed(2) }}</p>
                 </div>
             </div>
 
