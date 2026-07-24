@@ -81,9 +81,21 @@ const statusBadge = (color) => ({
                         </thead>
                         <tbody>
                             <tr v-if="purchaseRequests.data.length === 0">
-                                <td :colspan="isManager ? 9 : 8" class="px-6 py-12 text-center text-base text-slate-400 font-medium">
-                                    No purchase requests found.
-                                    <Link :href="route('admin.purchase-requests.create')" class="text-pink-600 underline ml-1 hover:text-pink-700">Create one.</Link>
+                                <td :colspan="isManager ? 9 : 8" class="px-6 py-12 text-center">
+                                    <div class="mx-auto max-w-sm space-y-3">
+                                        <p class="text-sm font-medium text-slate-400">No purchase requests found.</p>
+                                        <div>
+                                            <Link
+                                                :href="route('admin.purchase-requests.create')"
+                                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 active:scale-95"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                Create Purchase Request
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-for="pr in purchaseRequests.data" :key="pr.id" :class="pr.is_auto_draft ? 'bg-amber-50/50' : ''">

@@ -73,9 +73,21 @@ const applyFilters = () => router.get(route('admin.products.index'), filters, { 
                         </thead>
                         <tbody class="divide-y divide-gray-50">
                             <tr v-if="products.data.length === 0">
-                                <td colspan="9" class="px-6 py-12 text-center text-sm text-gray-400">
-                                    No products found.
-                                    <Link :href="route('admin.products.create')" class="text-accent underline">Create your first product.</Link>
+                                <td colspan="9" class="px-6 py-12 text-center">
+                                    <div class="mx-auto max-w-sm space-y-3">
+                                        <p class="text-sm font-medium text-slate-400">No products found in catalog.</p>
+                                        <div>
+                                            <Link
+                                                :href="route('admin.products.create')"
+                                                class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 active:scale-95"
+                                            >
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                                </svg>
+                                                Create Your First Product
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-for="product in products.data" :key="product.id" class="hover:bg-gray-50 transition">
@@ -113,8 +125,13 @@ const applyFilters = () => router.get(route('admin.products.index'), filters, { 
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <Link :href="route('admin.products.edit', product.id)"
-                                          class="text-xs text-gray-500 hover:text-accent px-2 py-1 rounded-lg hover:bg-gray-100 transition">
+                                    <Link
+                                        :href="route('admin.products.edit', product.id)"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-pink-200/80 bg-pink-50 px-2.5 py-1 text-xs font-semibold text-pink-600 shadow-sm transition-all hover:bg-pink-100 hover:text-pink-700 active:scale-95"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                        </svg>
                                         Edit
                                     </Link>
                                 </td>
