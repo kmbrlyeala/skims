@@ -23,7 +23,6 @@ const statusClass = (status) => ({
                 <p class="mt-1 text-sm text-slate-500">Your products and sales at a glance</p>
             </div>
 
-            <!-- Stats -->
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div class="stat-card">
                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">My Products</p>
