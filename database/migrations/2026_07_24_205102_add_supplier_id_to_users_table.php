@@ -4,26 +4,23 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class AddSupplierIdToUsersTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
-        });
+        if (!Schema::hasColumn('users', 'supplier_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->unsignedBigInteger('supplier_id')->nullable();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['supplier_id']);
-            $table->dropColumn('supplier_id');
-        });
+        if (Schema::hasColumn('users', 'supplier_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('supplier_id');
+            });
+        }
     }
-};
+}
