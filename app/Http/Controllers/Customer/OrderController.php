@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
-use App\Models\InventoryItem;
+use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -16,10 +17,28 @@ class OrderController extends Controller
 {
     public function index(Request $request): Response
     {
-        $orders = Order::with('items.inventoryItem:id,name,image_url')
+        $orders = Order::with('items.product')
             ->where('customer_id', $request->user()->id)
             ->latest()
             ->paginate(10);
+
+        // Transform for frontend
+        $orders->getCollection()->transform(fn ($order) => [
+            'id'         => $order->id,
+            'status'     => $order->status,
+            'total'      => $order->total,
+            'created_at' => $order->created_at->toISOString(),
+            'items'      => $order->items->map(fn ($item) => [
+                'id'       => $item->id,
+                'quantity' => $item->quantity,
+                'price'    => $item->price,
+                'product'  => [
+                    'id'        => $item->product->id,
+                    'name'      => $item->product->name,
+                    'photo_url' => collect($item->product->photo_urls)->first(),
+                ],
+            ]),
+        ]);
 
         return Inertia::render('Customer/Orders', [
             'orders' => $orders,
@@ -31,91 +50,114 @@ class OrderController extends Controller
         $user = $request->user();
 
         // Direct "Buy Now" purchase
-        if ($request->has('inventory_item_id')) {
+        if ($request->has('product_id')) {
             $validated = $request->validate([
-                'inventory_item_id' => ['required', 'exists:inventory_items,id'],
-                'quantity'          => ['required', 'integer', 'min:1'],
+                'product_id' => ['required', 'exists:products,id'],
+                'quantity'   => ['required', 'integer', 'min:1'],
             ]);
 
-            $product = InventoryItem::findOrFail($validated['inventory_item_id']);
+            try {
+                $order = DB::transaction(function () use ($user, $validated) {
+                    // Lock the inventory row to prevent race conditions
+                    $product = Product::findOrFail($validated['product_id']);
+                    $inventory = Inventory::where('product_id', $product->id)->lockForUpdate()->first();
 
-            if ($product->status !== 'active' || $product->stock < $validated['quantity']) {
-                return redirect()->back()->with('error', 'Not enough stock available.');
+                    if (!$product->is_active) {
+                        throw new \Exception('This product is no longer available.');
+                    }
+
+                    $stock = $inventory ? $inventory->on_hand_qty : 0;
+                    if ($stock < $validated['quantity']) {
+                        throw new \Exception("Not enough stock. Only {$stock} unit(s) available.");
+                    }
+
+                    $total = $validated['quantity'] * $product->price;
+
+                    $newOrder = Order::create([
+                        'customer_id' => $user->id,
+                        'status'      => Order::STATUS_PENDING,
+                        'total'       => $total,
+                    ]);
+
+                    OrderItem::create([
+                        'order_id'   => $newOrder->id,
+                        'product_id' => $product->id,
+                        'quantity'   => $validated['quantity'],
+                        'price'      => $product->price,
+                    ]);
+
+                    // Decrement on_hand_qty in the unified inventory
+                    $inventory->decrement('on_hand_qty', $validated['quantity']);
+
+                    return $newOrder;
+                });
+
+                return redirect()->route('customer.orders.show', $order->id)->with('success', 'Order placed successfully!');
+            } catch (\Exception $e) {
+                return redirect()->back()->with('error', $e->getMessage());
             }
+        }
 
-            $total = $validated['quantity'] * $product->price;
+        // Cart Checkout
+        try {
+            $order = DB::transaction(function () use ($user) {
+                $cartItems = Cart::with('product.inventory')
+                    ->where('customer_id', $user->id)
+                    ->get();
 
-            $order = DB::transaction(function () use ($user, $product, $validated, $total) {
+                if ($cartItems->isEmpty()) {
+                    throw new \Exception('Your cart is empty.');
+                }
+
+                // Verify stock availability and active status with row locks
+                $total = 0;
+                foreach ($cartItems as $cartItem) {
+                    $product = $cartItem->product;
+                    $inventory = Inventory::where('product_id', $product->id)->lockForUpdate()->first();
+
+                    if (!$product->is_active) {
+                        throw new \Exception("{$product->name} is no longer available. Please remove it from your cart.");
+                    }
+
+                    $stock = $inventory ? $inventory->on_hand_qty : 0;
+                    if ($stock < $cartItem->quantity) {
+                        throw new \Exception("Not enough stock for {$product->name}. Only {$stock} unit(s) available.");
+                    }
+
+                    $total += $cartItem->quantity * $product->price;
+                }
+
                 $newOrder = Order::create([
                     'customer_id' => $user->id,
                     'status'      => Order::STATUS_PENDING,
-                    'total'       => $total,
+                    'total'       => round($total, 2),
                 ]);
 
-                OrderItem::create([
-                    'order_id'          => $newOrder->id,
-                    'inventory_item_id' => $product->id,
-                    'supplier_id'       => $product->supplier_id,
-                    'quantity'          => $validated['quantity'],
-                    'price'             => $product->price,
-                ]);
+                foreach ($cartItems as $cartItem) {
+                    $product = $cartItem->product;
 
-                $product->decrement('stock', $validated['quantity']);
+                    OrderItem::create([
+                        'order_id'   => $newOrder->id,
+                        'product_id' => $product->id,
+                        'quantity'   => $cartItem->quantity,
+                        'price'      => $product->price,
+                    ]);
+
+                    // Decrement on_hand_qty in the unified inventory
+                    $inventory = Inventory::where('product_id', $product->id)->first();
+                    $inventory->decrement('on_hand_qty', $cartItem->quantity);
+                }
+
+                // Clear the cart
+                Cart::where('customer_id', $user->id)->delete();
 
                 return $newOrder;
             });
 
             return redirect()->route('customer.orders.show', $order->id)->with('success', 'Order placed successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        // Cart Checkout
-        $cartItems = Cart::with('inventoryItem')
-            ->where('customer_id', $user->id)
-            ->get();
-
-        if ($cartItems->isEmpty()) {
-            return redirect()->back()->with('error', 'Your cart is empty.');
-        }
-
-        // Verify stock availability
-        foreach ($cartItems as $cartItem) {
-            if ($cartItem->inventoryItem->stock < $cartItem->quantity) {
-                return redirect()->back()->with(
-                    'error',
-                    "Not enough stock for {$cartItem->inventoryItem->name}."
-                );
-            }
-        }
-
-        $total = $cartItems->sum(fn ($item) => $item->quantity * $item->inventoryItem->price);
-
-        $order = DB::transaction(function () use ($user, $cartItems, $total) {
-            $newOrder = Order::create([
-                'customer_id' => $user->id,
-                'status'      => Order::STATUS_PENDING,
-                'total'       => $total,
-            ]);
-
-            foreach ($cartItems as $cartItem) {
-                OrderItem::create([
-                    'order_id'          => $newOrder->id,
-                    'inventory_item_id' => $cartItem->inventory_item_id,
-                    'supplier_id'       => $cartItem->inventoryItem->supplier_id,
-                    'quantity'          => $cartItem->quantity,
-                    'price'             => $cartItem->inventoryItem->price,
-                ]);
-
-                // Decrement stock
-                $cartItem->inventoryItem->decrement('stock', $cartItem->quantity);
-            }
-
-            // Clear the cart
-            Cart::where('customer_id', $user->id)->delete();
-
-            return $newOrder;
-        });
-
-        return redirect()->route('customer.orders.show', $order->id)->with('success', 'Order placed successfully!');
     }
 
     public function show(Request $request, Order $order): Response
@@ -124,10 +166,26 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['items.inventoryItem:id,name,image_url,sku', 'items.supplier:id,name']);
+        $order->load('items.product');
 
         return Inertia::render('Customer/OrderDetail', [
-            'order' => $order,
+            'order' => [
+                'id'         => $order->id,
+                'status'     => $order->status,
+                'total'      => $order->total,
+                'created_at' => $order->created_at->toISOString(),
+                'items'      => $order->items->map(fn ($item) => [
+                    'id'       => $item->id,
+                    'quantity' => $item->quantity,
+                    'price'    => $item->price,
+                    'product'  => [
+                        'id'        => $item->product->id,
+                        'name'      => $item->product->name,
+                        'sku'       => $item->product->sku,
+                        'photo_url' => collect($item->product->photo_urls)->first(),
+                    ],
+                ]),
+            ],
         ]);
     }
 }

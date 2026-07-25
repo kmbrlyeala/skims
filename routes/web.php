@@ -57,6 +57,7 @@ Route::middleware([
             Route::get('/users', [UserController::class, 'index'])->name('users');
             Route::put('/users/{user}', [UserController::class, 'updateRole'])->name('users.updateRole');
             Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders');
+            Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('orders.cancel');
             // Supply Chain Routes
             Route::resource('suppliers', \App\Http\Controllers\Admin\SupplyChain\SupplierController::class)->except(['create', 'edit']);
             Route::post('suppliers/{supplier}/link-product', [\App\Http\Controllers\Admin\SupplyChain\SupplierController::class, 'linkProduct'])->name('suppliers.link-product');
@@ -107,6 +108,7 @@ Route::middleware([
             Route::get('/orders', [SupplierOrderController::class, 'index'])->name('orders');
             Route::put('/orders/{orderItem}', [SupplierOrderController::class, 'updateStatus'])->name('orders.updateStatus');
             Route::get('/purchase-requests', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
+            Route::post('/purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
         });
 
     /*

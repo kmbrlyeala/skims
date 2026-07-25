@@ -36,9 +36,9 @@ const statusClass = (status) => ({
                             <template v-for="(item, i) in order.items?.slice(0, 3)" :key="item.id">
                                 <div class="h-10 w-10 overflow-hidden rounded-lg border-2 border-white bg-slate-100">
                                     <img
-                                        v-if="item.inventory_item?.image_url"
-                                        :src="item.inventory_item.image_url"
-                                        :alt="item.inventory_item?.name"
+                                        v-if="item.product?.photo_url"
+                                        :src="item.product.photo_url"
+                                        :alt="item.product?.name"
                                         class="h-full w-full object-cover"
                                     />
                                     <div v-else class="flex h-full items-center justify-center text-xs text-slate-300">✦</div>

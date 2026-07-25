@@ -53,6 +53,16 @@ class Product extends Model
         return $this->hasMany(PurchaseRequest::class);
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function cartItems(): HasMany
+    {
+        return $this->hasMany(Cart::class);
+    }
+
     /** Live on-hand stock read directly from inventory — never stored on the listing itself. */
     public function getLiveStockAttribute(): int
     {

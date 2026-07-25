@@ -25,6 +25,7 @@ const reject = (pr) => {
 const statusBadge = (color) => ({
     gray:   'bg-gray-100 text-gray-600',
     amber:  'bg-amber-50 text-amber-700',
+    purple: 'bg-purple-50 text-purple-700',
     blue:   'bg-blue-50 text-blue-700',
     red:    'bg-red-50 text-red-700',
     green:  'bg-emerald-50 text-emerald-700',
@@ -54,7 +55,8 @@ const statusBadge = (color) => ({
                 <select v-model="filters.status" @change="applyFilters" class="form-select max-w-xs">
                     <option value="">All Statuses</option>
                     <option value="draft">Draft</option>
-                    <option value="pending_approval">Pending Approval</option>
+                    <option value="pending_approval">Pending Admin Approval</option>
+                    <option value="pending_factory_approval">Pending Factory Approval</option>
                     <option value="approved">Approved</option>
                     <option value="rejected">Rejected</option>
                     <option value="received">Received</option>
@@ -70,7 +72,7 @@ const statusBadge = (color) => ({
                             <tr>
                                 <th>PR #</th>
                                 <th>Product</th>
-                                <th>Factory</th>
+                                <th>Supplier</th>
                                 <th>Qty</th>
                                 <th>Total Cost</th>
                                 <th>Expected</th>

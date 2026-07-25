@@ -9,8 +9,12 @@ class Cart extends Model
 {
     protected $fillable = [
         'customer_id',
-        'inventory_item_id',
+        'product_id',
         'quantity',
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
     ];
 
     public function customer(): BelongsTo
@@ -18,8 +22,8 @@ class Cart extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
-    public function inventoryItem(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(InventoryItem::class);
+        return $this->belongsTo(Product::class);
     }
 }

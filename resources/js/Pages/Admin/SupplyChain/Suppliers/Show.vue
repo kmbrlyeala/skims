@@ -27,7 +27,7 @@ const unlinkProduct = (productId) => {
     }
 };
 
-const platformLabel = (p) => ({ alibaba: 'Alibaba', local_factory: 'Local Factory', other: 'Other' }[p] || p);
+const platformLabel = (p) => ({ alibaba: 'Alibaba', local_factory: 'Local Supplier', other: 'Other' }[p] || p);
 const statusColor = (s) => ({
     pending_approval: 'bg-amber-50 text-amber-700',
     approved: 'bg-blue-50 text-blue-700',

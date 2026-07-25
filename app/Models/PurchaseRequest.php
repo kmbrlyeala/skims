@@ -79,26 +79,28 @@ class PurchaseRequest extends Model
     public function getStatusLabelAttribute(): string
     {
         return match ($this->status) {
-            'draft'              => 'Draft',
-            'pending_approval'   => 'Pending Approval',
-            'approved'           => 'Approved',
-            'rejected'           => 'Rejected',
-            'received'           => 'Received',
-            'partially_received' => 'Partially Received',
-            default              => ucfirst($this->status),
+            'draft'                    => 'Draft',
+            'pending_approval'         => 'Pending Admin Approval',
+            'pending_factory_approval' => 'Pending Factory Approval',
+            'approved'                 => 'Approved',
+            'rejected'                 => 'Rejected',
+            'received'                 => 'Received',
+            'partially_received'       => 'Partially Received',
+            default                    => ucfirst($this->status),
         };
     }
 
     public function getStatusColorAttribute(): string
     {
         return match ($this->status) {
-            'draft'              => 'gray',
-            'pending_approval'   => 'amber',
-            'approved'           => 'blue',
-            'rejected'           => 'red',
-            'received'           => 'green',
-            'partially_received' => 'orange',
-            default              => 'gray',
+            'draft'                    => 'gray',
+            'pending_approval'         => 'amber',
+            'pending_factory_approval' => 'purple',
+            'approved'                 => 'blue',
+            'rejected'                 => 'red',
+            'received'                 => 'green',
+            'partially_received'       => 'orange',
+            default                    => 'gray',
         };
     }
 }

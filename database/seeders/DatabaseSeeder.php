@@ -57,16 +57,16 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $supplier = User::factory()->create([
-            'name'        => 'Supplier User',
-            'email'       => 'supplier@supplier.local',
+            'name'        => 'SKIMS Beauty Factory',
+            'email'       => 'beautyfactory@skims.local',
             'password'    => 'password123',
             'role'        => 'supplier',
             'supplier_id' => $supplierModel1->id,
         ]);
 
         $supplier2 = User::factory()->create([
-            'name'        => 'Glow Botanics',
-            'email'       => 'glow@supplier.local',
+            'name'        => 'Hygiene Labs',
+            'email'       => 'hygienelabs@skims.local',
             'password'    => 'password123',
             'role'        => 'supplier',
             'supplier_id' => $supplierModel2->id,
@@ -79,84 +79,105 @@ class DatabaseSeeder extends Seeder
             'role'     => 'customer',
         ]);
 
-        // --- Inventory Items (Products) ---
+        // --- Products & Unified Inventory ---
         $products = [
             [
-                'supplier_id' => $supplier->id,
                 'name'        => 'Velvet Rose Moisturizer',
                 'description' => 'A lightweight, fast-absorbing daily moisturizer infused with rose hip oil and hyaluronic acid. Leaves skin soft, dewy, and hydrated all day.',
-                'image_url'   => 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop'],
                 'sku'         => 'SKIMS-MOIST-001',
-                'stock'       => 50,
                 'price'       => 42.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 50,
             ],
             [
-                'supplier_id' => $supplier->id,
                 'name'        => 'Silk Serum Drops',
                 'description' => 'Concentrated vitamin C serum with niacinamide for brighter, more even-toned skin. Silky texture absorbs instantly.',
-                'image_url'   => 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=400&h=400&fit=crop'],
                 'sku'         => 'SKIMS-SERUM-001',
-                'stock'       => 35,
                 'price'       => 58.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 35,
             ],
             [
-                'supplier_id' => $supplier->id,
                 'name'        => 'Cloud Cleanser Foam',
                 'description' => 'Gentle foaming cleanser with chamomile extract. Removes makeup and impurities without stripping natural oils.',
-                'image_url'   => 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop'],
                 'sku'         => 'SKIMS-CLEAN-001',
-                'stock'       => 80,
                 'price'       => 28.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 80,
             ],
             [
-                'supplier_id' => $supplier2->id,
                 'name'        => 'Petal Lip Balm Duo',
                 'description' => 'Two-pack of buttery lip balms in Rose Petal and Honey Nude. Enriched with shea butter and vitamin E.',
-                'image_url'   => 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=400&h=400&fit=crop'],
                 'sku'         => 'GLOW-LIP-001',
-                'stock'       => 120,
                 'price'       => 18.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 120,
             ],
             [
-                'supplier_id' => $supplier2->id,
                 'name'        => 'Midnight Repair Cream',
                 'description' => 'Rich overnight cream with retinol and peptides. Wake up to visibly firmer, smoother skin.',
-                'image_url'   => 'https://images.unsplash.com/photo-1570194065650-d99fb4a38691?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1570194065650-d99fb4a38691?w=400&h=400&fit=crop'],
                 'sku'         => 'GLOW-NIGHT-001',
-                'stock'       => 25,
                 'price'       => 65.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 25,
             ],
             [
-                'supplier_id' => $supplier2->id,
                 'name'        => 'Sunbeam SPF 50',
                 'description' => 'Weightless mineral sunscreen with a natural finish. Protects against UVA/UVB without the white cast.',
-                'image_url'   => 'https://images.unsplash.com/photo-1532947974358-a218d68024e1?w=400&h=400&fit=crop',
+                'photos'  => ['https://images.unsplash.com/photo-1532947974358-a218d68024e1?w=400&h=400&fit=crop'],
                 'sku'         => 'GLOW-SPF-001',
-                'stock'       => 60,
                 'price'       => 35.00,
-                'status'      => 'active',
+                'is_active'   => true,
+                'stock'       => 60,
             ],
             [
-                'supplier_id' => $supplier->id,
                 'name'        => 'Aura Body Oil (Draft)',
                 'description' => 'Luxurious body oil blend — coming soon.',
-                'image_url'   => null,
+                'photos'  => [],
                 'sku'         => 'SKIMS-OIL-001',
-                'stock'       => 0,
                 'price'       => 48.00,
-                'status'      => 'draft',
+                'is_active'   => false,
+                'stock'       => 0,
             ],
         ];
 
         $createdProducts = [];
-        foreach ($products as $product) {
-            $createdProducts[] = InventoryItem::create($product);
+        foreach ($products as $productData) {
+            $stock = $productData['stock'];
+            unset($productData['stock']);
+            
+            $product = \App\Models\Product::create($productData);
+            
+            \App\Models\Inventory::create([
+                'product_id'    => $product->id,
+                'on_hand_qty'   => $stock,
+                'incoming_qty'  => 0,
+                'reorder_point' => 10,
+            ]);
+            
+            $createdProducts[] = $product;
         }
+
+        // --- Link Products to Suppliers (Factories) ---
+        // Supplier 1 supplies the first 3 products
+        $supplierModel1->products()->attach([
+            $createdProducts[0]->id => ['moq' => 100, 'unit_cost' => 15.00],
+            $createdProducts[1]->id => ['moq' => 200, 'unit_cost' => 22.00],
+            $createdProducts[2]->id => ['moq' => 150, 'unit_cost' => 8.50],
+        ]);
+
+        // Supplier 2 supplies the next 4 products
+        $supplierModel2->products()->attach([
+            $createdProducts[3]->id => ['moq' => 500, 'unit_cost' => 4.00],
+            $createdProducts[4]->id => ['moq' => 100, 'unit_cost' => 28.00],
+            $createdProducts[5]->id => ['moq' => 300, 'unit_cost' => 12.00],
+            $createdProducts[6]->id => ['moq' => 250, 'unit_cost' => 18.00],
+        ]);
 
         // --- Sample Orders ---
         $order1 = Order::create([
@@ -165,18 +186,16 @@ class DatabaseSeeder extends Seeder
             'total'       => 100.00,
         ]);
         OrderItem::create([
-            'order_id'          => $order1->id,
-            'inventory_item_id' => $createdProducts[0]->id,
-            'supplier_id'       => $supplier->id,
-            'quantity'          => 1,
-            'price'             => 42.00,
+            'order_id'   => $order1->id,
+            'product_id' => $createdProducts[0]->id,
+            'quantity'   => 1,
+            'price'      => 42.00,
         ]);
         OrderItem::create([
-            'order_id'          => $order1->id,
-            'inventory_item_id' => $createdProducts[1]->id,
-            'supplier_id'       => $supplier->id,
-            'quantity'          => 1,
-            'price'             => 58.00,
+            'order_id'   => $order1->id,
+            'product_id' => $createdProducts[1]->id,
+            'quantity'   => 1,
+            'price'      => 58.00,
         ]);
 
         $order2 = Order::create([
@@ -185,30 +204,28 @@ class DatabaseSeeder extends Seeder
             'total'       => 83.00,
         ]);
         OrderItem::create([
-            'order_id'          => $order2->id,
-            'inventory_item_id' => $createdProducts[3]->id,
-            'supplier_id'       => $supplier2->id,
-            'quantity'          => 1,
-            'price'             => 18.00,
+            'order_id'   => $order2->id,
+            'product_id' => $createdProducts[3]->id,
+            'quantity'   => 1,
+            'price'      => 18.00,
         ]);
         OrderItem::create([
-            'order_id'          => $order2->id,
-            'inventory_item_id' => $createdProducts[4]->id,
-            'supplier_id'       => $supplier2->id,
-            'quantity'          => 1,
-            'price'             => 65.00,
+            'order_id'   => $order2->id,
+            'product_id' => $createdProducts[4]->id,
+            'quantity'   => 1,
+            'price'      => 65.00,
         ]);
 
         // --- Cart items for customer ---
         Cart::create([
-            'customer_id'       => $customer->id,
-            'inventory_item_id' => $createdProducts[2]->id,
-            'quantity'          => 2,
+            'customer_id' => $customer->id,
+            'product_id'  => $createdProducts[2]->id,
+            'quantity'    => 2,
         ]);
         Cart::create([
-            'customer_id'       => $customer->id,
-            'inventory_item_id' => $createdProducts[5]->id,
-            'quantity'          => 1,
+            'customer_id' => $customer->id,
+            'product_id'  => $createdProducts[5]->id,
+            'quantity'    => 1,
         ]);
     }
 }

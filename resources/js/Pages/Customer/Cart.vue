@@ -1,11 +1,14 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { ref } from 'vue';
 
 const props = defineProps({
     cartItems: Array,
     total: Number,
 });
+
+const isSubmitting = ref(false);
 
 const updateQuantity = (cartId, quantity) => {
     router.put(route('customer.cart.update', cartId), { quantity }, { preserveState: true });
@@ -16,7 +19,13 @@ const removeItem = (cartId) => {
 };
 
 const placeOrder = () => {
-    router.post(route('customer.orders.store'));
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+    router.post(route('customer.orders.store'), {}, {
+        onFinish: () => {
+            isSubmitting.value = false;
+        }
+    });
 };
 </script>
 
@@ -39,9 +48,9 @@ const placeOrder = () => {
                         <!-- Image -->
                         <div class="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
                             <img
-                                v-if="item.inventory_item?.image_url"
-                                :src="item.inventory_item.image_url"
-                                :alt="item.inventory_item.name"
+                                v-if="item.product?.photo_url"
+                                :src="item.product.photo_url"
+                                :alt="item.product.name"
                                 class="h-full w-full object-cover"
                             />
                             <div v-else class="flex h-full items-center justify-center text-lg text-slate-300">✦</div>
@@ -50,8 +59,7 @@ const placeOrder = () => {
                         <!-- Details -->
                         <div class="flex flex-1 flex-col justify-between">
                             <div>
-                                <h3 class="font-semibold text-slate-900">{{ item.inventory_item?.name }}</h3>
-                                <p class="text-xs text-slate-400">{{ item.inventory_item?.supplier?.name }}</p>
+                                <h3 class="font-semibold text-slate-900">{{ item.product?.name }}</h3>
                             </div>
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -62,11 +70,12 @@ const placeOrder = () => {
                                     <span class="w-8 text-center text-sm font-semibold">{{ item.quantity }}</span>
                                     <button
                                         @click="updateQuantity(item.id, item.quantity + 1)"
-                                        class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-sm text-slate-600 transition-colors hover:bg-slate-50"
+                                        :disabled="item.quantity >= (item.product?.stock || 0)"
+                                        class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-sm text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed"
                                     >+</button>
                                 </div>
                                 <div class="flex items-center gap-3">
-                                    <p class="font-bold text-slate-900">₱{{ (item.inventory_item?.price * item.quantity).toFixed(2) }}</p>
+                                    <p class="font-bold text-slate-900">₱{{ (item.product?.price * item.quantity).toFixed(2) }}</p>
                                     <button
                                         @click="removeItem(item.id)"
                                         class="text-xs font-medium text-red-500 hover:text-red-600"
@@ -97,8 +106,8 @@ const placeOrder = () => {
                                 </div>
                             </div>
                         </div>
-                        <button @click="placeOrder" class="btn-primary mt-5 w-full">
-                            Place Order
+                        <button @click="placeOrder" :disabled="isSubmitting" class="btn-primary mt-5 w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ isSubmitting ? 'Placing Order...' : 'Place Order' }}
                         </button>
                         <Link :href="route('customer.shop')" class="mt-3 block text-center text-xs font-semibold text-pink-600 hover:text-pink-700">
                             ← Continue Shopping
@@ -112,6 +121,13 @@ const placeOrder = () => {
                 <p class="text-4xl">🛒</p>
                 <p class="mt-3 text-lg font-medium text-slate-500">Your cart is empty</p>
                 <Link :href="route('customer.shop')" class="btn-primary mt-4 inline-flex">
+                    Browse Products
+                </Link>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+btn-primary mt-4 inline-flex">
                     Browse Products
                 </Link>
             </div>
