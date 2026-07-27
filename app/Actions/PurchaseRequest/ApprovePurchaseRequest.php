@@ -27,7 +27,7 @@ class ApprovePurchaseRequest
      * @return PurchaseOrder
      * @throws ValidationException
      */
-    public function handle(PurchaseRequest $pr, User $approver, bool $overrideMoq = false): PurchaseOrder
+    public function handle(PurchaseRequest $pr, User $approver, bool $overrideMoq = false): PurchaseRequest
     {
         return DB::transaction(function () use ($pr, $approver, $overrideMoq) {
             // 1. MOQ validation
@@ -43,32 +43,14 @@ class ApprovePurchaseRequest
                 }
             }
 
-            // 2. Approve the PR
+            // 2. Approve the PR internally and send to factory
             $pr->update([
-                'status'      => 'approved',
+                'status'      => 'pending_factory_approval',
                 'approved_by' => $approver->id,
                 'approved_at' => now(),
             ]);
 
-            // 3. Create the Purchase Order
-            $po = PurchaseOrder::create([
-                'purchase_request_id'  => $pr->id,
-                'quantity_ordered'     => $pr->quantity_requested,
-                'unit_cost'            => $pr->unit_cost,
-                'total_cost'           => $pr->unit_cost * $pr->quantity_requested,
-                'expected_arrival_date' => $pr->expected_delivery_date
-                    ?? now()->addDays($pr->supplier->lead_time_days ?? 14)->toDateString(),
-                'status'               => 'ordered',
-            ]);
-
-            // 4. Update incoming_qty in inventory
-            $inventory = Inventory::firstOrCreate(
-                ['product_id' => $pr->product_id],
-                ['on_hand_qty' => 0, 'incoming_qty' => 0, 'reorder_point' => 0]
-            );
-            $inventory->addIncoming($pr->quantity_requested);
-
-            return $po;
+            return $pr;
         });
     }
 }

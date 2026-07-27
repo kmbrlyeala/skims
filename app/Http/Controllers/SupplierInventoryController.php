@@ -66,6 +66,15 @@ class SupplierInventoryController extends Controller
             abort(403);
         }
 
+        // Prevent deletion if item has active (non-completed) orders
+        $hasActiveOrders = $item->orderItems()
+            ->whereHas('order', fn ($q) => $q->whereNotIn('status', ['delivered', 'cancelled']))
+            ->exists();
+
+        if ($hasActiveOrders) {
+            return redirect()->route('supplier.inventory')->with('error', 'Cannot delete this item — it has active orders. Set status to "hidden" instead.');
+        }
+
         $item->delete();
 
         return redirect()->route('supplier.inventory')->with('success', 'Item deleted.');

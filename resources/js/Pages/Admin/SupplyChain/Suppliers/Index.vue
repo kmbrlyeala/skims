@@ -71,7 +71,7 @@ const executeDeactivate = () => {
     }
 };
 
-const platformLabel = (p) => ({ alibaba: 'Alibaba', local_factory: 'Local Factory', other: 'Other' }[p] || p);
+const platformLabel = (p) => ({ alibaba: 'Alibaba', local_factory: 'Local Supplier', other: 'Other' }[p] || p);
 
 const filters = reactive({ search: '', platform: '', status: '' });
 
@@ -81,16 +81,16 @@ const applyFilters = () => {
 </script>
 
 <template>
-    <AppLayout title="Factories">
+    <AppLayout title="Suppliers">
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Factories</h2>
+                <h2 class="font-semibold text-xl text-gray-800 leading-tight">Suppliers</h2>
                 <button @click="openCreate"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Factory
+                    Add Supplier
                 </button>
             </div>
         </template>
@@ -100,13 +100,13 @@ const applyFilters = () => {
 
                 <!-- Filters -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex flex-wrap gap-3">
-                    <input v-model="filters.search" @input="applyFilters" type="text" placeholder="Search factories…"
+                    <input v-model="filters.search" @input="applyFilters" type="text" placeholder="Search suppliers…"
                            class="flex-1 min-w-48 rounded-lg border-gray-200 text-sm focus:ring-accent focus:border-accent" />
                     <select v-model="filters.platform" @change="applyFilters"
                             class="rounded-lg border-gray-200 text-sm focus:ring-accent focus:border-accent">
                         <option value="">All Platforms</option>
                         <option value="alibaba">Alibaba</option>
-                        <option value="local_factory">Local Factory</option>
+                        <option value="local_factory">Local Supplier</option>
                         <option value="other">Other</option>
                     </select>
                     <select v-model="filters.status" @change="applyFilters"
@@ -122,7 +122,7 @@ const applyFilters = () => {
                     <table class="min-w-full divide-y divide-gray-100">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Factory</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Platform</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Time</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</th>
@@ -134,7 +134,7 @@ const applyFilters = () => {
                             <tr v-if="suppliers.data.length === 0">
                                 <td colspan="6" class="px-6 py-12 text-center">
                                     <div class="mx-auto max-w-sm space-y-3">
-                                        <p class="text-sm font-medium text-slate-400">No factories found.</p>
+                                        <p class="text-sm font-medium text-slate-400">No suppliers found.</p>
                                         <div>
                                             <button
                                                 @click="openCreate"
@@ -143,7 +143,7 @@ const applyFilters = () => {
                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                                 </svg>
-                                                Add Your First Factory
+                                                Add Your First Supplier
                                             </button>
                                         </div>
                                     </div>
@@ -225,7 +225,7 @@ const applyFilters = () => {
             <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="font-semibold text-lg text-gray-900">
-                        {{ editingSupplier ? 'Edit Factory' : 'Add New Factory' }}
+                        {{ editingSupplier ? 'Edit Supplier' : 'Add New Supplier' }}
                     </h3>
                     <button @click="showModal = false" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -236,7 +236,7 @@ const applyFilters = () => {
 
                 <form @submit.prevent="submit" class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Factory Name *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Supplier Name *</label>
                         <input v-model="form.name" type="text" required
                                class="w-full rounded-lg border-gray-200 text-sm focus:ring-accent focus:border-accent" />
                         <p v-if="form.errors.name" class="text-xs text-red-600 mt-1">{{ form.errors.name }}</p>
@@ -264,7 +264,7 @@ const applyFilters = () => {
                             <select v-model="form.source_platform" required
                                     class="w-full rounded-lg border-gray-200 text-sm focus:ring-accent focus:border-accent">
                                 <option value="alibaba">Alibaba</option>
-                                <option value="local_factory">Local Factory</option>
+                                <option value="local_factory">Local Supplier</option>
                                 <option value="other">Other</option>
                             </select>
                         </div>
@@ -283,12 +283,12 @@ const applyFilters = () => {
                     <div class="flex items-center gap-2">
                         <input v-model="form.is_active" type="checkbox" id="is_active"
                                class="rounded border-gray-300 text-accent focus:ring-accent" />
-                        <label for="is_active" class="text-sm text-gray-700">Active factory</label>
+                        <label for="is_active" class="text-sm text-gray-700">Active supplier</label>
                     </div>
                     <div class="flex gap-3 pt-2">
                         <button type="submit" :disabled="form.processing"
                                 class="flex-1 py-2.5 bg-accent text-white text-sm font-medium rounded-lg hover:bg-opacity-90 transition disabled:opacity-50">
-                            {{ form.processing ? 'Saving…' : (editingSupplier ? 'Update Factory' : 'Create Factory') }}
+                            {{ form.processing ? 'Saving…' : (editingSupplier ? 'Update Supplier' : 'Create Supplier') }}
                         </button>
                         <button type="button" @click="showModal = false"
                                 class="px-4 py-2.5 border border-gray-200 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
@@ -323,12 +323,12 @@ const applyFilters = () => {
                     </div>
 
                     <!-- Title & Prompt Message -->
-                    <h3 class="text-lg font-bold text-slate-900">Deactivate Factory</h3>
+                    <h3 class="text-lg font-bold text-slate-900">Deactivate Supplier</h3>
                     <p class="mt-2 text-sm text-slate-600 leading-relaxed">
                         Are you sure you want to deactivate <span class="font-bold text-slate-900 font-mono bg-slate-100 px-2 py-0.5 rounded-md">{{ supplierToDeactivate.name }}</span>?
                     </p>
                     <p class="mt-1 text-xs text-slate-400">
-                        This factory will be marked inactive in the system.
+                        This supplier will be marked inactive in the system.
                     </p>
 
                     <!-- Actions -->

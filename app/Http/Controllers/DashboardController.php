@@ -19,8 +19,8 @@ class DashboardController extends Controller
             'totalUsers'    => User::count(),
             'totalOrders'   => Order::count(),
             'totalRevenue'  => Order::where('status', '!=', 'cancelled')->sum('total'),
-            'totalProducts' => InventoryItem::count(),
-            'activeProducts'=> InventoryItem::active()->count(),
+            'totalProducts' => \App\Models\Product::count(),
+            'activeProducts'=> \App\Models\Product::where('is_active', true)->count(),
             'recentOrders'  => Order::with('customer:id,name')
                 ->latest()
                 ->take(5)
@@ -35,8 +35,8 @@ class DashboardController extends Controller
     public function inventoryManager(): Response
     {
         $stats = [
-            'totalProducts' => InventoryItem::count(),
-            'activeProducts'=> InventoryItem::active()->count(),
+            'totalProducts' => \App\Models\Product::count(),
+            'activeProducts'=> \App\Models\Product::where('is_active', true)->count(),
             'lowStockCount' => \App\Models\Inventory::whereColumn('on_hand_qty', '<=', 'reorder_point')->where('reorder_point', '>', 0)->count(),
         ];
 
@@ -53,13 +53,12 @@ class DashboardController extends Controller
             'totalProducts'  => $user->inventoryItems()->count(),
             'activeProducts' => $user->inventoryItems()->where('status', 'active')->count(),
             'totalStock'     => $user->inventoryItems()->sum('stock'),
-            'totalOrders'    => OrderItem::where('supplier_id', $user->id)->distinct('order_id')->count('order_id'),
-            'totalRevenue'   => OrderItem::where('supplier_id', $user->id)
-                ->whereHas('order', fn ($q) => $q->where('status', '!=', 'cancelled'))
-                ->selectRaw('SUM(price * quantity) as total')
-                ->value('total') ?? 0,
-            'recentOrders'   => OrderItem::with(['order.customer:id,name', 'inventoryItem:id,name'])
-                ->where('supplier_id', $user->id)
+            'totalOrders'    => \App\Models\PurchaseOrder::whereHas('purchaseRequest', fn($q) => $q->where('supplier_id', $user->supplier_id))->count(),
+            'totalRevenue'   => \App\Models\PurchaseOrder::whereHas('purchaseRequest', fn($q) => $q->where('supplier_id', $user->supplier_id))
+                                ->where('status', '!=', 'cancelled')
+                                ->sum('total_cost') ?? 0,
+            'recentOrders'   => \App\Models\PurchaseOrder::with(['purchaseRequest.product'])
+                ->whereHas('purchaseRequest', fn($q) => $q->where('supplier_id', $user->supplier_id))
                 ->latest()
                 ->take(5)
                 ->get(),

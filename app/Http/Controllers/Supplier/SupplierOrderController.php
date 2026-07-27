@@ -35,8 +35,26 @@ class SupplierOrderController extends Controller
             'status' => ['required', 'string', 'in:processing,shipped,delivered'],
         ]);
 
-        $orderItem->order->update(['status' => $validated['status']]);
+        $newStatus = $validated['status'];
+
+        // Validate proper status transitions (prevent skipping steps)
+        $currentOrderStatus = $orderItem->order->status;
+        $allowedTransitions = [
+            'pending'    => ['processing'],
+            'processing' => ['shipped'],
+            'shipped'    => ['delivered'],
+        ];
+
+        if (!isset($allowedTransitions[$currentOrderStatus]) || !in_array($newStatus, $allowedTransitions[$currentOrderStatus])) {
+            return redirect()->back()->with('error', "Cannot change status from '{$currentOrderStatus}' to '{$newStatus}'.");
+        }
+
+        // Update the order status — since order_items don't have individual status columns,
+        // update the parent order. In multi-supplier scenarios, use the lowest common status.
+        $order = $orderItem->order;
+        $order->update(['status' => $newStatus]);
 
         return redirect()->back()->with('success', 'Order status updated.');
     }
 }
+

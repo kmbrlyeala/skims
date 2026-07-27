@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
-use App\Models\InventoryItem;
+use App\Models\Inventory;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,14 +14,27 @@ class CartController extends Controller
 {
     public function index(Request $request): Response
     {
-        $cartItems = Cart::with('inventoryItem.supplier:id,name')
+        $cartItems = Cart::with(['product.inventory'])
             ->where('customer_id', $request->user()->id)
             ->get();
 
-        $total = $cartItems->sum(fn ($item) => $item->quantity * $item->inventoryItem->price);
+        // Transform for frontend
+        $transformed = $cartItems->map(fn ($item) => [
+            'id'       => $item->id,
+            'quantity' => $item->quantity,
+            'product'  => [
+                'id'        => $item->product->id,
+                'name'      => $item->product->name,
+                'price'     => $item->product->price,
+                'photo_url' => collect($item->product->photo_urls)->first(),
+                'stock'     => $item->product->live_stock,
+            ],
+        ]);
+
+        $total = $cartItems->sum(fn ($item) => $item->quantity * $item->product->price);
 
         return Inertia::render('Customer/Cart', [
-            'cartItems' => $cartItems,
+            'cartItems' => $transformed,
             'total'     => round($total, 2),
         ]);
     }
@@ -28,27 +42,36 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'inventory_item_id' => ['required', 'exists:inventory_items,id'],
-            'quantity'          => ['sometimes', 'integer', 'min:1'],
+            'product_id' => ['required', 'exists:products,id'],
+            'quantity'   => ['sometimes', 'integer', 'min:1'],
         ]);
 
-        $product = InventoryItem::findOrFail($validated['inventory_item_id']);
+        $product = Product::with('inventory')->findOrFail($validated['product_id']);
+        $requestedQty = $validated['quantity'] ?? 1;
 
-        if ($product->status !== 'active' || $product->stock < 1) {
+        if (!$product->is_active || $product->live_stock < 1) {
             return redirect()->back()->with('error', 'This product is not available.');
         }
 
         $cartItem = Cart::where('customer_id', $request->user()->id)
-            ->where('inventory_item_id', $validated['inventory_item_id'])
+            ->where('product_id', $validated['product_id'])
             ->first();
 
+        // Validate combined quantity does not exceed stock
+        $existingQty = $cartItem ? $cartItem->quantity : 0;
+        $newTotal = $existingQty + $requestedQty;
+
+        if ($newTotal > $product->live_stock) {
+            return redirect()->back()->with('error', "Only {$product->live_stock} unit(s) available. You already have {$existingQty} in your cart.");
+        }
+
         if ($cartItem) {
-            $cartItem->increment('quantity', $validated['quantity'] ?? 1);
+            $cartItem->increment('quantity', $requestedQty);
         } else {
             Cart::create([
-                'customer_id'       => $request->user()->id,
-                'inventory_item_id' => $validated['inventory_item_id'],
-                'quantity'          => $validated['quantity'] ?? 1,
+                'customer_id' => $request->user()->id,
+                'product_id'  => $validated['product_id'],
+                'quantity'    => $requestedQty,
             ]);
         }
 
@@ -64,6 +87,12 @@ class CartController extends Controller
         $validated = $request->validate([
             'quantity' => ['required', 'integer', 'min:1'],
         ]);
+
+        // Validate quantity against available stock
+        $product = Product::with('inventory')->findOrFail($cart->product_id);
+        if ($validated['quantity'] > $product->live_stock) {
+            return redirect()->back()->with('error', "Only {$product->live_stock} unit(s) available.");
+        }
 
         $cart->update($validated);
 

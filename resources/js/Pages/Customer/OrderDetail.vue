@@ -59,17 +59,17 @@ const closeSuccessModal = () => {
                     >
                         <div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-white">
                             <img
-                                v-if="item.inventory_item?.image_url"
-                                :src="item.inventory_item.image_url"
-                                :alt="item.inventory_item?.name"
+                                v-if="item.product?.photo_url"
+                                :src="item.product.photo_url"
+                                :alt="item.product?.name"
                                 class="h-full w-full object-cover"
                             />
                             <div v-else class="flex h-full items-center justify-center text-lg text-slate-300">✦</div>
                         </div>
                         <div class="flex-1">
-                            <p class="font-semibold text-slate-900">{{ item.inventory_item?.name }}</p>
+                            <p class="font-semibold text-slate-900">{{ item.product?.name }}</p>
                             <p class="text-xs text-slate-500">
-                                {{ item.supplier?.name }} · SKU: {{ item.inventory_item?.sku }}
+                                SKU: {{ item.product?.sku }}
                             </p>
                         </div>
                         <div class="text-right">

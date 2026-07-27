@@ -60,7 +60,7 @@ Route::middleware([
             Route::put('/users/{user}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.update-role');
             
             Route::get('/orders', [\App\Http\Controllers\Admin\AdminOrderController::class, 'index'])->name('orders.index');
-            
+            Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Admin\AdminOrderController::class, 'cancel'])->name('orders.cancel');
             // Supply Chain Routes
             Route::prefix('supply-chain')->group(function () {
                 // Products
@@ -139,6 +139,7 @@ Route::middleware([
             
             Route::get('/products-supplied', [\App\Http\Controllers\Supplier\UiMockupController::class, 'productsSupplied'])->name('products-supplied.index');
             Route::get('/delivery-history', [\App\Http\Controllers\Supplier\UiMockupController::class, 'deliveryHistory'])->name('delivery-history.index');
+            Route::post('/purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
         });
 
     /*

@@ -18,21 +18,13 @@ class PurchaseRequestController extends Controller
     {
         $user = $request->user();
         
-        // Auto-link to an active factory if not linked yet
+        // Ensure the supplier user is properly linked to a factory
         if (!$user->supplier_id) {
-            $supplier = Supplier::first();
-            if (!$supplier) {
-                $supplier = Supplier::create([
-                    'name'            => 'SKIMS Beauty Factory',
-                    'contact_name'    => $user->name,
-                    'contact_email'   => $user->email,
-                    'source_platform' => 'local_factory',
-                    'lead_time_days'  => 14,
-                    'is_active'       => true,
-                ]);
-            }
-            $user->supplier_id = $supplier->id;
-            $user->save();
+            return Inertia::render('Supplier/PurchaseRequests/Index', [
+                'purchaseRequests' => ['data' => [], 'links' => [], 'meta' => []],
+                'filters'          => $request->only(['status', 'search']),
+                'error'            => 'Your account is not linked to a supplier factory. Please contact an administrator.',
+            ]);
         }
 
         $prs = PurchaseRequest::with(['product', 'requester', 'approver', 'purchaseOrder'])
@@ -63,5 +55,29 @@ class PurchaseRequestController extends Controller
             'purchaseRequests' => $prs,
             'filters'          => $request->only(['status', 'search']),
         ]);
+    }
+
+    /**
+     * Factory approves the PR and provides ETA.
+     */
+    public function approve(Request $request, PurchaseRequest $purchaseRequest, \App\Actions\PurchaseRequest\FactoryApprovePurchaseRequest $action)
+    {
+        $user = $request->user();
+
+        if ($purchaseRequest->supplier_id !== $user->supplier_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($purchaseRequest->status !== 'pending_factory_approval') {
+            return back()->with('error', 'This PR is not pending factory approval.');
+        }
+
+        $validated = $request->validate([
+            'expected_delivery_date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $action->handle($purchaseRequest, $validated['expected_delivery_date']);
+
+        return back()->with('success', 'Purchase Request approved. Purchase Order has been generated.');
     }
 }

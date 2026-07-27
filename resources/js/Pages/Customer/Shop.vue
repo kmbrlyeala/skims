@@ -52,7 +52,7 @@ const confirmAddToCart = () => {
 
     isSubmitting.value = true;
     router.post(route('customer.cart.store'), {
-        inventory_item_id: selectedProduct.value.id,
+        product_id: selectedProduct.value.id,
         quantity: finalQty,
     }, {
         preserveState: true,
@@ -88,7 +88,7 @@ const submitPayment = () => {
 
     isSubmitting.value = true;
     router.post(route('customer.orders.store'), {
-        inventory_item_id: selectedProduct.value.id,
+        product_id: selectedProduct.value.id,
         quantity: finalQty,
         payment_method: paymentMethod.value,
     }, {
@@ -133,15 +133,14 @@ const submitPayment = () => {
                     <div>
                         <div class="aspect-square overflow-hidden bg-slate-100">
                             <img
-                                v-if="product.image_url"
-                                :src="product.image_url"
+                                v-if="product.photo_url"
+                                :src="product.photo_url"
                                 :alt="product.name"
                                 class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                             <div v-else class="flex h-full items-center justify-center text-3xl text-slate-300">✦</div>
                         </div>
                         <div class="p-4 pb-0">
-                            <p class="text-xs font-medium text-slate-400">{{ product.supplier?.name }}</p>
                             <h3 class="mt-0.5 font-semibold text-slate-900">{{ product.name }}</h3>
                             <p v-if="product.description" class="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
                                 {{ product.description }}
@@ -209,8 +208,8 @@ const submitPayment = () => {
                             <div class="flex items-center gap-3.5">
                                 <div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-50 border border-slate-200/60">
                                     <img
-                                        v-if="selectedProduct.image_url"
-                                        :src="selectedProduct.image_url"
+                                        v-if="selectedProduct.photo_url"
+                                        :src="selectedProduct.photo_url"
                                         :alt="selectedProduct.name"
                                         class="h-full w-full object-cover"
                                     />

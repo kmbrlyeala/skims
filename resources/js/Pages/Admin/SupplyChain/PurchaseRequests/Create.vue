@@ -23,14 +23,14 @@ const form = useForm({
     draft_pr_id: props.prefill?.draft_pr_id ?? '',
 });
 
-// Auto-fill product details when factory + product are selected
-const selectedFactory = computed(() => props.suppliers.find(s => s.id == form.supplier_id));
+// Auto-fill product details when supplier + product are selected
+const selectedSupplier = computed(() => props.suppliers.find(s => s.id == form.supplier_id));
 
-// Filter products based on selected factory
+// Filter products based on selected supplier
 const availableProducts = computed(() => {
-    if (!selectedFactory.value) return [];
-    // The controller currently returns products with their suppliers (factories).
-    // We need to find products that are linked to the selected factory.
+    if (!selectedSupplier.value) return [];
+    // The controller currently returns products with their suppliers (suppliers).
+    // We need to find products that are linked to the selected supplier.
     return props.products.filter(p => p.suppliers.some(s => s.id == form.supplier_id));
 });
 
@@ -47,7 +47,7 @@ watch(selectedSupplierData, (sd) => {
     }
 });
 
-// If the factory changes, clear the product selection if it's no longer valid
+// If the supplier changes, clear the product selection if it's no longer valid
 watch(() => form.supplier_id, (newFactoryId) => {
     if (newFactoryId) {
         const productStillValid = availableProducts.value.some(p => p.id == form.product_id);
@@ -62,7 +62,7 @@ const moqWarning = computed(() => {
     if (!selectedSupplierData.value || !form.quantity_requested) return null;
     const qty = parseInt(form.quantity_requested);
     const moq = selectedSupplierData.value.moq;
-    if (qty < moq) return `Warning: quantity ${qty} is below the factory's MOQ of ${moq}. The approver will need to override this.`;
+    if (qty < moq) return `Warning: quantity ${qty} is below the supplier's MOQ of ${moq}. The approver will need to override this.`;
     return null;
 });
 
@@ -87,21 +87,21 @@ const submit = () => {
                             From Reorder Alert
                         </span>
                     </h1>
-                    <p class="mt-1 text-sm text-slate-500">Create a new purchase request for factories</p>
+                    <p class="mt-1 text-sm text-slate-500">Create a new purchase request for suppliers</p>
                 </div>
             </div>
 
             <div class="glass-card !p-8">
                 <form @submit.prevent="submit" class="space-y-8">
 
-                    <!-- Factory & Product -->
+                    <!-- Supplier & Product -->
                     <div class="space-y-6">
-                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Factory & Product</h3>
+                        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Supplier & Product</h3>
 
                         <div>
-                            <label class="form-label">Factory *</label>
+                            <label class="form-label">Supplier *</label>
                             <select v-model="form.supplier_id" required class="form-select">
-                                <option value="" disabled>Select a factory…</option>
+                                <option value="" disabled>Select a supplier…</option>
                                 <option v-for="s in suppliers" :key="s.id" :value="s.id">
                                     {{ s.name }}
                                 </option>
@@ -112,7 +112,7 @@ const submit = () => {
                         <div>
                             <label class="form-label">Product / SKU *</label>
                             <select v-model="form.product_id" required class="form-select" :disabled="!form.supplier_id">
-                                <option value="" disabled>{{ form.supplier_id ? 'Select a product…' : 'Select a factory first' }}</option>
+                                <option value="" disabled>{{ form.supplier_id ? 'Select a product…' : 'Select a supplier first' }}</option>
                                 <option v-for="p in availableProducts" :key="p.id" :value="p.id">
                                     {{ p.name }} ({{ p.sku }})
                                 </option>
@@ -120,7 +120,7 @@ const submit = () => {
                             <p v-if="form.errors.product_id" class="text-sm font-bold text-red-600 mt-2">{{ form.errors.product_id }}</p>
                         </div>
 
-                        <!-- Factory details box -->
+                        <!-- Supplier details box -->
                         <div v-if="selectedSupplierData" class="rounded-xl border border-blue-200 bg-blue-50/50 p-5 grid grid-cols-3 gap-4">
                             <div>
                                 <p class="text-xs font-bold text-blue-500 uppercase tracking-widest">MOQ</p>
@@ -150,7 +150,7 @@ const submit = () => {
                             <div>
                                 <label class="form-label">Manufacturing Unit Cost (₱) *</label>
                                 <input v-model="form.unit_cost" type="number" step="0.01" min="0" required readonly class="form-input bg-slate-100 cursor-not-allowed opacity-80" />
-                                <p class="text-xs text-slate-500 mt-1 mt-1 font-medium italic">Fixed by factory agreement.</p>
+                                <p class="text-xs text-slate-500 mt-1 mt-1 font-medium italic">Fixed by supplier agreement.</p>
                             </div>
                         </div>
 
@@ -171,7 +171,7 @@ const submit = () => {
                         </div>
 
                         <div>
-                            <label class="form-label">Notes for Factory</label>
+                            <label class="form-label">Notes for Supplier</label>
                             <textarea v-model="form.notes" rows="3" placeholder="Any special manufacturing instructions…" class="form-input"></textarea>
                         </div>
                     </div>

@@ -9,10 +9,14 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id',
-        'inventory_item_id',
-        'supplier_id',
+        'product_id',
         'quantity',
         'price',
+    ];
+
+    protected $casts = [
+        'price'    => 'decimal:2',
+        'quantity' => 'integer',
     ];
 
     public function order(): BelongsTo
@@ -20,13 +24,8 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function inventoryItem(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(InventoryItem::class);
-    }
-
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'supplier_id');
+        return $this->belongsTo(Product::class);
     }
 }
