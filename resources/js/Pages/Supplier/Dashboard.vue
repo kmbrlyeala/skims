@@ -1,29 +1,5 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-
-const props = defineProps({
-    stats: Object,
-    products: {
-        type: Array,
-        default: () => [],
-    },
-    reorderThreshold: {
-        type: Number,
-        default: 20,
-    },
-});
-
-const statusClass = (status) => ({
-    pending: 'badge-pending',
-    processing: 'badge-processing',
-    shipped: 'badge-shipped',
-    delivered: 'badge-delivered',
-    cancelled: 'badge-cancelled',
-}[status] || 'badge-draft');
-
-const formatPrice = (value) => Number(value ?? 0).toFixed(2);
-const reorderNeeded = (stock) => stock <= props.reorderThreshold;
 </script>
 
 <template>
@@ -31,71 +7,51 @@ const reorderNeeded = (stock) => stock <= props.reorderThreshold;
         <div class="page-container space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Supplier Dashboard</h1>
-                <p class="mt-1 text-sm text-slate-500">Your products and sales at a glance</p>
+                <p class="mt-1 text-sm text-slate-500">Overview of your activity and requests</p>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">My Products</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalProducts }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ stats.activeProducts }} active</p>
+            <!-- Stats Grid -->
+            <div class="grid gap-6 sm:grid-cols-3">
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-sm font-medium text-slate-500 uppercase tracking-wide">Pending PRs</dt>
+                    <dd class="mt-2 text-4xl font-extrabold text-pink-600">4</dd>
                 </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Stock</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalStock }}</p>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-sm font-medium text-slate-500 uppercase tracking-wide">Active POs</dt>
+                    <dd class="mt-2 text-4xl font-extrabold text-pink-600">2</dd>
                 </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Orders</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalOrders }}</p>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-sm font-medium text-slate-500 uppercase tracking-wide">Deliveries</dt>
+                    <dd class="mt-2 text-4xl font-extrabold text-pink-600">18</dd>
                 </div>
             </div>
 
-            <div class="grid gap-4">
-                <div class="glass-card">
-                    <div class="mb-4 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Beauty Essentials</h2>
-                            <p class="text-xs text-slate-500">Moisturizers, serums, cleansers, sunscreen</p>
-                        </div>
-                        <span class="text-xs font-semibold text-slate-500">Standardized product data, bulk limits, batch tracking</span>
-                    </div>
-
-                    <div v-if="products.length" class="space-y-3">
-                        <div v-for="product in products" :key="product.id" class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <p class="text-sm font-semibold text-slate-900">{{ product.name }}</p>
-                                    <p class="text-xs uppercase tracking-wider text-slate-400">{{ product.category || 'Beauty Essentials' }}</p>
-                                    <p class="mt-2 text-sm text-slate-600">{{ product.description }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-semibold text-slate-900">Stock: {{ product.stock }}</p>
-                                    <p class="text-xs text-slate-500">
-                                        Min bulk: {{ product.min_bulk_qty }} · Max bulk: {{ product.max_bulk_qty }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="mt-3 grid gap-2 sm:grid-cols-2">
-                                <div class="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-                                    <p class="font-medium text-slate-800">Price</p>
-                                    ₱{{ formatPrice(product.price) }}
-                                </div>
-                                <div class="rounded-xl p-3 text-sm"
-                                     :class="reorderNeeded(product.stock) ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-700'">
-                                    <p class="font-medium">{{ reorderNeeded(product.stock) ? 'Reorder needed' : 'Stock healthy' }}</p>
-                                    <span class="block text-xs">Restock when below {{ reorderThreshold }}</span>
-                                </div>
-                            </div>
-
-                            <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                <span class="badge badge-info">Batch: {{ product.batch_number || 'N/A' }}</span>
-                                <span class="badge badge-info">Expiry: {{ product.batch_expiry || 'TBD' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <p v-else class="py-6 text-center text-sm text-slate-400">No beauty essentials available.</p>
+            <!-- Recent Requests -->
+            <div class="glass-card">
+                <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Recent Requests</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm">
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">PR-0012</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Moisturizer</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-500">Qty 50</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Pending</td>
+                            </tr>
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">PR-0013</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Toner</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-500">Qty 20</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Accepted</td>
+                            </tr>
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">PR-0014</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Serum</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-500">Qty 30</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Preparing</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

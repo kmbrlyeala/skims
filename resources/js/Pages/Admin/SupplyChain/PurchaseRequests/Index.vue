@@ -7,19 +7,23 @@ defineProps({
     purchaseRequests: Object,
     filters: Object,
     isManager: Boolean,
+    routePrefix: {
+        type: String,
+        default: 'admin',
+    },
 });
 
 const filters = reactive({ status: '', search: '' });
-const applyFilters = () => router.get(route('admin.purchase-requests.index'), filters, { preserveState: true, replace: true });
+const applyFilters = () => router.get(route(`${routePrefix}.purchase-requests.index`), filters, { preserveState: true, replace: true });
 
 const approve = (pr, override = false) => {
     if (!confirm(`Approve PR #${pr.id} for ${pr.quantity_requested} × ${pr.product.name}?`)) return;
-    router.post(route('admin.purchase-requests.approve', pr.id), { override_moq: override });
+    router.post(route(`${routePrefix}.purchase-requests.approve`, pr.id), { override_moq: override });
 };
 
 const reject = (pr) => {
     if (!confirm(`Reject PR #${pr.id}?`)) return;
-    router.post(route('admin.purchase-requests.reject', pr.id));
+    router.post(route(`${routePrefix}.purchase-requests.reject`, pr.id));
 };
 
 const statusBadge = (color) => ({
@@ -40,7 +44,7 @@ const statusBadge = (color) => ({
                     <h1 class="text-2xl font-bold text-slate-900">Purchase Requests</h1>
                     <p class="mt-1 text-sm text-slate-500">Manage supply requests and approvals</p>
                 </div>
-                <Link :href="route('admin.purchase-requests.create')" class="btn-primary btn-sm">
+                <Link :href="route(`${routePrefix}.purchase-requests.create`)" class="btn-primary btn-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
@@ -86,7 +90,7 @@ const statusBadge = (color) => ({
                                         <p class="text-sm font-medium text-slate-400">No purchase requests found.</p>
                                         <div>
                                             <Link
-                                                :href="route('admin.purchase-requests.create')"
+                                                :href="route(`${routePrefix}.purchase-requests.create`)"
                                                 class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:shadow-md hover:brightness-105 active:scale-95"
                                             >
                                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

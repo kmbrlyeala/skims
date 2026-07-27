@@ -12,7 +12,7 @@ class PurchaseOrderController extends Controller
 {
     public function index(Request $request): Response
     {
-        $pos = PurchaseOrder::with(['purchaseRequest.product', 'purchaseRequest.supplier', 'goodsReceipts'])
+        $pos = PurchaseOrder::with(['purchaseRequest.product.inventory', 'purchaseRequest.supplier', 'goodsReceipts'])
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->search, fn ($q, $s) => $q->where('po_number', 'like', "%{$s}%")
                 ->orWhereHas('purchaseRequest.product', fn ($p) => $p->where('name', 'like', "%{$s}%")))
@@ -25,6 +25,7 @@ class PurchaseOrderController extends Controller
         return Inertia::render('Admin/SupplyChain/PurchaseOrders/Index', [
             'purchaseOrders' => $pos,
             'filters'        => $request->only(['status', 'search']),
+            'routePrefix'    => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
     }
 
@@ -68,6 +69,7 @@ class PurchaseOrderController extends Controller
                     'notes'             => $gr->notes,
                 ]),
             ],
+            'routePrefix' => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
     }
 
@@ -79,6 +81,8 @@ class PurchaseOrderController extends Controller
             'po_number'            => $po->po_number,
             'product_name'         => $pr->product->name,
             'product_sku'          => $pr->product->sku,
+            'product_on_hand'      => $pr->product->inventory?->on_hand_qty ?? 0,
+            'product_incoming'     => $pr->product->inventory?->incoming_qty ?? 0,
             'supplier_name'        => $pr->supplier->name,
             'quantity_ordered'     => $po->quantity_ordered,
             'total_received'       => $po->total_received_qty,

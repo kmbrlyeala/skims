@@ -15,7 +15,7 @@ class ProductController extends Controller
 {
     public function index(Request $request): Response
     {
-        $products = Product::with('inventory')
+        $products = Product::with(['inventory', 'suppliers'])
             ->when($request->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%")->orWhere('sku', 'like', "%{$s}%"))
             ->when($request->status === 'active', fn ($q) => $q->where('is_active', true))
             ->when($request->status === 'inactive', fn ($q) => $q->where('is_active', false))
@@ -37,6 +37,7 @@ class ProductController extends Controller
             'reorder_point' => $p->inventory?->reorder_point ?? 0,
             'stock_status'  => $p->stock_status,
             'photo_url'     => collect($p->photo_urls)->first(),
+            'supplier_name' => $p->suppliers->pluck('name')->join(', '),
         ]);
 
         return Inertia::render('Admin/SupplyChain/Products/Index', [

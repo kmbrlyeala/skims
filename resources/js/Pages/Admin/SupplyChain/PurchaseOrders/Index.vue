@@ -6,10 +6,14 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 defineProps({
     purchaseOrders: Object,
     filters: Object,
+    routePrefix: {
+        type: String,
+        default: 'admin',
+    },
 });
 
 const filters = reactive({ status: '', search: '' });
-const applyFilters = () => router.get(route('admin.purchase-orders.index'), filters, { preserveState: true, replace: true });
+const applyFilters = () => router.get(route(`${routePrefix}.purchase-orders.index`), filters, { preserveState: true, replace: true });
 
 const statusBadge = (color) => ({
     blue:   'bg-blue-50 text-blue-700',
@@ -52,6 +56,7 @@ const statusBadge = (color) => ({
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">PO Number</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Inventory</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ordered</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Received</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Remaining</th>
@@ -74,6 +79,10 @@ const statusBadge = (color) => ({
                                     <p class="text-xs text-gray-400 font-mono">{{ po.product_sku }}</p>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700">{{ po.supplier_name }}</td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm text-gray-700">On Hand: <span class="font-medium" :class="po.product_on_hand === 0 ? 'text-red-600' : ''">{{ po.product_on_hand }}</span></p>
+                                    <p class="text-xs text-blue-600">Incoming: {{ po.product_incoming }}</p>
+                                </td>
                                 <td class="px-6 py-4 text-sm font-semibold text-gray-900">{{ po.quantity_ordered }}</td>
                                 <td class="px-6 py-4 text-sm text-emerald-600 font-semibold">{{ po.total_received }}</td>
                                 <td class="px-6 py-4 text-sm font-semibold"
@@ -89,10 +98,10 @@ const statusBadge = (color) => ({
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <Link :href="route('admin.purchase-orders.show', po.id)"
-                                              class="text-xs text-gray-500 hover:text-accent px-2 py-1 rounded-lg hover:bg-gray-100 transition">
-                                            View
+                                    <div class="flex items-center justify-end">
+                                        <Link :href="route(`${routePrefix}.purchase-orders.show`, po.id)"
+                                              class="btn-secondary !px-3 !py-1.5 !text-xs whitespace-nowrap">
+                                            View Details
                                         </Link>
                                     </div>
                                 </td>

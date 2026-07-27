@@ -30,6 +30,7 @@ class PurchaseRequestController extends Controller
             'purchaseRequests' => $prs,
             'filters'          => $request->only(['status', 'search']),
             'isManager'        => $request->user()->hasRole('admin'),
+            'routePrefix'      => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
     }
 
@@ -68,6 +69,7 @@ class PurchaseRequestController extends Controller
             ]),
             'suppliers'       => $suppliers,
             'prefill'         => $prefill,
+            'routePrefix'     => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
     }
 
@@ -115,7 +117,8 @@ class PurchaseRequestController extends Controller
             ? "Purchase Request #{$pr->id} created with MOQ warning: {$moqWarning}"
             : "Purchase Request #{$pr->id} created successfully.";
 
-        return redirect()->route('admin.purchase-requests.index')->with('success', $message);
+        $routePrefix = $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager';
+        return redirect()->route("{$routePrefix}.purchase-requests.index")->with('success', $message);
     }
 
     public function approve(Request $request, PurchaseRequest $purchaseRequest): RedirectResponse
@@ -132,7 +135,8 @@ class PurchaseRequestController extends Controller
 
         try {
             $po = app(ApprovePurchaseRequest::class)->handle($purchaseRequest, $request->user(), $overrideMoq);
-            return redirect()->route('admin.purchase-requests.index')
+            $routePrefix = $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager';
+            return redirect()->route("{$routePrefix}.purchase-requests.index")
                 ->with('success', "PR approved. Purchase Order {$po->po_number} created.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->with('error', 'Approval failed. See errors below.');
@@ -151,7 +155,8 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest->update(['status' => 'rejected']);
 
-        return redirect()->route('admin.purchase-requests.index')->with('success', 'Purchase Request rejected.');
+        $routePrefix = $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager';
+        return redirect()->route("{$routePrefix}.purchase-requests.index")->with('success', 'Purchase Request rejected.');
     }
 
     private function formatPr(PurchaseRequest $pr): array

@@ -2,14 +2,20 @@
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
-defineProps({ purchaseOrder: Object });
+const props = defineProps({
+    purchaseOrder: Object,
+    routePrefix: {
+        type: String,
+        default: 'admin',
+    },
+});
 </script>
 
 <template>
     <AppLayout :title="purchaseOrder.po_number">
         <template #header>
             <div class="flex items-center gap-3">
-                <Link :href="route('admin.purchase-orders.index')" class="text-gray-400 hover:text-gray-600 transition">
+                <Link :href="route(`${routePrefix}.purchase-orders.index`)" class="text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>

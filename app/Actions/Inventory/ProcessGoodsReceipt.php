@@ -53,6 +53,12 @@ class ProcessGoodsReceipt
             );
             $inventory->incrementStock($netReceived);
 
+            // Sync with B2C Storefront (InventoryItem)
+            $b2cProduct = \App\Models\InventoryItem::where('sku', $pr->product->sku)->first();
+            if ($b2cProduct) {
+                $b2cProduct->increment('stock', $netReceived);
+            }
+
             // 3. Determine new PO status
             $totalReceived = $purchaseOrder->goodsReceipts()->sum('quantity_received');
             if ($totalReceived >= $purchaseOrder->quantity_ordered) {

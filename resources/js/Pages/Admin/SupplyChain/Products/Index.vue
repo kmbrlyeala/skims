@@ -62,6 +62,7 @@ const applyFilters = () => router.get(route('admin.products.index'), filters, { 
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">SKU</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">On Hand</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Incoming</th>
@@ -105,6 +106,10 @@ const applyFilters = () => router.get(route('admin.products.index'), filters, { 
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-500 font-mono">{{ product.sku }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-700">
+                                    <span v-if="product.supplier_name">{{ product.supplier_name }}</span>
+                                    <span v-else class="text-gray-400 italic">No supplier</span>
+                                </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">₱{{ Number(product.price).toLocaleString() }}</td>
                                 <td class="px-6 py-4 text-sm font-semibold"
                                     :class="product.live_stock === 0 ? 'text-red-600' : product.stock_status === 'low' ? 'text-amber-600' : 'text-gray-900'">

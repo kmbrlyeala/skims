@@ -62,6 +62,16 @@ class OrderController extends Controller
 
                 $product->decrement('stock', $validated['quantity']);
 
+                // Sync with Supply Chain Inventory and Trigger Auto-Reorder
+                $b2bProduct = \App\Models\Product::where('sku', $product->sku)->first();
+                if ($b2bProduct && $b2bProduct->inventory) {
+                    $b2bProduct->inventory->decrement('on_hand_qty', $validated['quantity']);
+                    
+                    // Trigger Auto-Reorder Check
+                    app(\App\Actions\Inventory\CheckAndCreateReorderDraft::class)
+                        ->handle($b2bProduct->inventory->fresh());
+                }
+
                 return $newOrder;
             });
 
@@ -107,6 +117,16 @@ class OrderController extends Controller
 
                 // Decrement stock
                 $cartItem->inventoryItem->decrement('stock', $cartItem->quantity);
+
+                // Sync with Supply Chain Inventory and Trigger Auto-Reorder
+                $b2bProduct = \App\Models\Product::where('sku', $cartItem->inventoryItem->sku)->first();
+                if ($b2bProduct && $b2bProduct->inventory) {
+                    $b2bProduct->inventory->decrement('on_hand_qty', $cartItem->quantity);
+                    
+                    // Trigger Auto-Reorder Check
+                    app(\App\Actions\Inventory\CheckAndCreateReorderDraft::class)
+                        ->handle($b2bProduct->inventory->fresh());
+                }
             }
 
             // Clear the cart

@@ -7,6 +7,10 @@ const props = defineProps({
     products: Array,
     suppliers: Array,
     prefill: Object,
+    routePrefix: {
+        type: String,
+        default: 'admin',
+    },
 });
 
 const form = useForm({
@@ -63,7 +67,7 @@ const moqWarning = computed(() => {
 });
 
 const submit = () => {
-    form.post(route('admin.purchase-requests.store'));
+    form.post(route(`${props.routePrefix}.purchase-requests.store`));
 };
 </script>
 
@@ -71,7 +75,7 @@ const submit = () => {
     <AppLayout title="New Purchase Request">
         <div class="page-container max-w-3xl space-y-6">
             <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
-                <Link :href="route('admin.purchase-requests.index')" class="text-slate-400 hover:text-slate-600 transition-colors">
+                <Link :href="route(`${routePrefix}.purchase-requests.index`)" class="text-slate-400 hover:text-slate-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -173,7 +177,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center gap-4 pt-4 border-t border-slate-100">
-                        <Link :href="route('admin.purchase-requests.index')" class="btn-secondary flex-1 max-w-[200px]">
+                        <Link :href="route(`${routePrefix}.purchase-requests.index`)" class="btn-secondary flex-1 max-w-[200px]">
                             Cancel
                         </Link>
                         <button type="submit" :disabled="form.processing" class="btn-primary flex-1">

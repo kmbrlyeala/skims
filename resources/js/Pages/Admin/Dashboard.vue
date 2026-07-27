@@ -1,84 +1,106 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
-
-const props = defineProps({
-    stats: Object,
-});
-
-const statusClass = (status) => ({
-    pending: 'badge-pending',
-    processing: 'badge-processing',
-    shipped: 'badge-shipped',
-    delivered: 'badge-delivered',
-    cancelled: 'badge-cancelled',
-}[status] || 'badge-draft');
 </script>
 
 <template>
     <AppLayout title="Admin Dashboard">
-        <div class="page-container space-y-6">
-            <!-- Header -->
+        <div class="page-container space-y-8">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-                <p class="mt-1 text-sm text-slate-500">Platform overview and key metrics</p>
+                <p class="mt-1 text-sm text-slate-500">Overview of system activity</p>
             </div>
 
-            <!-- Stats Grid -->
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Users</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalUsers }}</p>
+            <!-- Stats Grid 1 -->
+            <div class="grid gap-6 sm:grid-cols-4">
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Sales</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-pink-600">₱120,000</dd>
                 </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Orders</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalOrders }}</p>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Orders</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-slate-700">120</dd>
                 </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Revenue</p>
-                    <p class="mt-2 text-3xl font-bold text-emerald-600">₱{{ Number(stats.totalRevenue).toFixed(2) }}</p>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Products</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-slate-700">48</dd>
                 </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Products</p>
-                    <p class="mt-2 text-3xl font-bold text-slate-900">{{ stats.totalProducts }}</p>
-                    <p class="mt-0.5 text-xs text-slate-400">{{ stats.activeProducts }} active</p>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Customers</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-slate-700">320</dd>
                 </div>
             </div>
 
-            <!-- Quick Actions + Recent Orders -->
-            <div class="grid gap-6 lg:grid-cols-3">
-                <!-- Quick Actions -->
-                <div class="glass-card">
-                    <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Quick Actions</h2>
-                    <div class="space-y-2">
-                        <Link :href="route('admin.users')" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-                            <span class="text-base"></span> Manage Users
-                        </Link>
-                        <Link :href="route('admin.orders')" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50">
-                            <span class="text-base"></span> View All Orders
-                        </Link>
-                    </div>
+            <!-- Stats Grid 2 -->
+            <div class="grid gap-6 sm:grid-cols-4">
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Low Stock</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-amber-600">5</dd>
                 </div>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Pending PRs</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-pink-600">3</dd>
+                </div>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Pending Orders</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-blue-600">12</dd>
+                </div>
+                <div class="glass-card flex flex-col items-center justify-center text-center p-6">
+                    <dt class="text-xs font-medium text-slate-500 uppercase tracking-wide">Suppliers</dt>
+                    <dd class="mt-2 text-3xl font-extrabold text-slate-700">8</dd>
+                </div>
+            </div>
 
+            <div class="grid gap-8 lg:grid-cols-2">
                 <!-- Recent Orders -->
-                <div class="glass-card lg:col-span-2">
-                    <div class="mb-4 flex items-center justify-between">
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400">Recent Orders</h2>
-                        <Link :href="route('admin.orders')" class="text-xs font-semibold text-pink-600 hover:text-pink-700">View all →</Link>
+                <div class="glass-card">
+                    <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Recent Orders</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-sm">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">#1025</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700">Hannah Sadicon</td>
+                                    <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Paid</span></td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-500">To Ship</td>
+                                </tr>
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">#1024</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700">Maria Santos</td>
+                                    <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">Shipped</span></td>
+                                    <td class="whitespace-nowrap px-3 py-4"></td>
+                                </tr>
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">#1023</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700">John Cruz</td>
+                                    <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Delivered</span></td>
+                                    <td class="whitespace-nowrap px-3 py-4"></td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div v-if="stats.recentOrders?.length" class="space-y-2">
-                        <div v-for="order in stats.recentOrders" :key="order.id" class="flex items-center justify-between rounded-xl bg-slate-50/80 px-4 py-3">
-                            <div>
-                                <p class="text-sm font-medium text-slate-800">Order #{{ order.id }}</p>
-                                <p class="text-xs text-slate-500">{{ order.customer?.name }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-sm font-semibold text-slate-800">₱{{ Number(order.total).toFixed(2) }}</p>
-                                <span class="badge" :class="statusClass(order.status)">{{ order.status }}</span>
-                            </div>
-                        </div>
+                </div>
+
+                <!-- Low Stock Products -->
+                <div class="glass-card">
+                    <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Low Stock Products</h2>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200 text-sm">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">Moisturizer</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-amber-600 font-semibold">5 pcs</td>
+                                </tr>
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">Vitamin Serum</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-amber-600 font-semibold">3 pcs</td>
+                                </tr>
+                                <tr>
+                                    <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">Sunscreen</td>
+                                    <td class="whitespace-nowrap px-3 py-4 text-red-600 font-semibold">2 pcs</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <p v-else class="py-6 text-center text-sm text-slate-400">No orders yet</p>
                 </div>
             </div>
         </div>

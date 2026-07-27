@@ -13,6 +13,16 @@ const statusClass = (status) => ({
     delivered: 'badge-delivered',
     cancelled: 'badge-cancelled',
 }[status] || 'badge-draft');
+
+const formatStatus = (status) => {
+    return {
+        pending: 'ORDER PLACED',
+        processing: 'PACKING',
+        shipped: 'IN TRANSIT',
+        delivered: 'ORDER DELIVERED',
+        cancelled: 'CANCELLED',
+    }[status] || status;
+};
 </script>
 
 <template>
@@ -59,7 +69,7 @@ const statusClass = (status) => ({
 
                     <div class="text-right">
                         <p class="font-bold text-slate-900">₱{{ Number(order.total).toFixed(2) }}</p>
-                        <span class="badge" :class="statusClass(order.status)">{{ order.status }}</span>
+                        <span class="badge" :class="statusClass(order.status)">{{ formatStatus(order.status) }}</span>
                     </div>
                 </Link>
             </div>
