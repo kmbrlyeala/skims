@@ -272,15 +272,13 @@ class DatabaseSeeder extends Seeder
         ]);
         OrderItem::create([
             'order_id'          => $order1->id,
-            'inventory_item_id' => $createdProducts[0]->id,
-            'supplier_id'       => $supplier->id,
+            'product_id'        => $createdAdminProducts[0]->id,
             'quantity'          => 1,
             'price'             => 42.00,
         ]);
         OrderItem::create([
             'order_id'          => $order1->id,
-            'inventory_item_id' => $createdProducts[1]->id,
-            'supplier_id'       => $supplier->id,
+            'product_id'        => $createdAdminProducts[1]->id,
             'quantity'          => 1,
             'price'             => 58.00,
         ]);
@@ -292,15 +290,13 @@ class DatabaseSeeder extends Seeder
         ]);
         OrderItem::create([
             'order_id'          => $order2->id,
-            'inventory_item_id' => $createdProducts[3]->id,
-            'supplier_id'       => $supplier2->id,
+            'product_id'        => $createdAdminProducts[3]->id,
             'quantity'          => 1,
             'price'             => 18.00,
         ]);
         OrderItem::create([
             'order_id'          => $order2->id,
-            'inventory_item_id' => $createdProducts[4]->id,
-            'supplier_id'       => $supplier2->id,
+            'product_id'        => $createdAdminProducts[4]->id,
             'quantity'          => 1,
             'price'             => 65.00,
         ]);
@@ -308,12 +304,12 @@ class DatabaseSeeder extends Seeder
         // --- Cart items for customer ---
         Cart::create([
             'customer_id'       => $customer->id,
-            'inventory_item_id' => $createdProducts[2]->id,
+            'product_id'        => $createdAdminProducts[2]->id,
             'quantity'          => 2,
         ]);
         Cart::create([
             'customer_id'       => $customer->id,
-            'inventory_item_id' => $createdProducts[5]->id,
+            'product_id'        => $createdAdminProducts[5]->id,
             'quantity'          => 1,
         ]);
     }
