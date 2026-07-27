@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 
 import { ref } from 'vue';
 
@@ -48,7 +48,7 @@ const submitPayment = () => {
 </script>
 
 <template>
-    <AppLayout title="Cart">
+    <CustomerLayout title="Cart">
         <div class="page-container space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Shopping Cart</h1>
@@ -226,5 +226,5 @@ const submitPayment = () => {
                 </div>
             </div>
         </Teleport>
-    </AppLayout>
+    </CustomerLayout>
 </template>

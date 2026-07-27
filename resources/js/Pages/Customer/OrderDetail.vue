@@ -1,6 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import DeliveryTracker from '@/Components/DeliveryTracker.vue';
 import { ref } from 'vue';
 
@@ -24,7 +24,7 @@ const closeSuccessModal = () => {
 </script>
 
 <template>
-    <AppLayout title="Order Details">
+    <CustomerLayout title="Order Details">
         <div class="page-container space-y-6">
             <div class="flex items-center gap-3">
                 <Link :href="route('customer.orders')" class="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600">
@@ -133,5 +133,5 @@ const closeSuccessModal = () => {
                 </div>
             </div>
         </Teleport>
-    </AppLayout>
+    </CustomerLayout>
 </template>

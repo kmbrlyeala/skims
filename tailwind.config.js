@@ -18,6 +18,13 @@ export default {
                 sans: ['Outfit', ...defaultTheme.fontFamily.sans],
             },
             colors: {
+                brand: {
+                    beige: '#fdfbf7', // Keep for compatibility if needed, or change to light pink
+                    pink: '#f36a8d', // The vibrant SkimShop pink
+                    'pink-light': '#fdf2f5',
+                    'pink-hover': '#e65377',
+                    text: '#1a1a1a',
+                },
                 surface: {
                     DEFAULT: '#ffffff',
                     alt: '#f8fafc',

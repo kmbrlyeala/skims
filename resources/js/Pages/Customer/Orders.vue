@@ -1,6 +1,6 @@
 <script setup>
 import { Link, router } from '@inertiajs/vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 
 const props = defineProps({
     orders: Object,
@@ -26,7 +26,7 @@ const formatStatus = (status) => {
 </script>
 
 <template>
-    <AppLayout title="My Orders">
+    <CustomerLayout title="My Orders">
         <div class="page-container space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">My Orders</h1>
@@ -96,5 +96,5 @@ const formatStatus = (status) => {
                 />
             </div>
         </div>
-    </AppLayout>
+    </CustomerLayout>
 </template>

@@ -6,7 +6,12 @@ defineProps({
     canRegister: Boolean,
 });
 
-
+const features = [
+    { title: "Premium Quality", desc: "Sourced from the best independent suppliers.", icon: "✨" },
+    { title: "Fast Delivery", desc: "Get your essentials delivered right to your door.", icon: "🚚" },
+    { title: "Curated Selection", desc: "Only the best products make it to our shop.", icon: "💎" },
+    { title: "24/7 Support", desc: "We're here to help you with any questions.", icon: "💬" }
+];
 </script>
 
 <template>

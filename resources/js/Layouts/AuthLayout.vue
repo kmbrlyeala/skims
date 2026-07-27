@@ -9,85 +9,229 @@ defineProps({
 </script>
 
 <template>
-    <!-- Full page gradient -->
-    <div
-        class="min-h-screen overflow-hidden flex items-center justify-center p-4 sm:p-6 lg:p-8"
-        :style="{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.45), rgba(248, 250, 252, 0.72)), url('${backgroundImage}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
-    >
+    <div class="auth-page" :style="{ backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4)), url('${backgroundImage}')`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }">
         <Head :title="title" />
 
-        <!-- Logo top left -->
-        <div class="absolute left-6 top-6 lg:left-10 lg:top-10">
-            <a href="/" class="flex items-center gap-2.5">
-                <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-pink-200">
-                    S
-                </div>
-                <span class="text-sm font-bold tracking-wide text-slate-800">SKIMS SHOP</span>
-            </a>
-        </div>
+        <!-- Decorative background blobs -->
+        <div class="auth-bg-blob auth-bg-blob--1"></div>
+        <div class="auth-bg-blob auth-bg-blob--2"></div>
+        <div class="auth-bg-blob auth-bg-blob--3"></div>
 
-        <!-- Main Glass Container -->
-        <div class="w-full max-w-5xl rounded-[2.5rem] bg-white/30 backdrop-blur-xl border border-white/70 shadow-[0_25px_80px_rgba(15,23,42,0.12)] overflow-hidden flex flex-col lg:flex-row">
-            
-            <!-- Left Side: Blurb -->
-            <div class="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-center p-10 xl:p-14 border-r border-white/40">
-                <p class="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-pink-500">
-                    Beauty essentials
-                </p>
-                <h1 class="text-4xl font-semibold tracking-tight text-slate-800 xl:text-5xl">
-                    Curated glow for your everyday ritual.
-                </h1>
-                <p class="mt-5 text-lg leading-8 text-slate-600">
-                    Discover luxe skincare, haircare, and self-care essentials designed to feel as polished as they look.
-                </p>
-
-                <div class="mt-10 flex flex-wrap gap-3">
-                    <span class="rounded-full border border-pink-200 bg-pink-50/80 px-4 py-2 text-sm font-medium text-pink-700 shadow-sm">
-                        Cruelty-free
-                    </span>
-                    <span class="rounded-full border border-violet-200 bg-violet-50/80 px-4 py-2 text-sm font-medium text-violet-700 shadow-sm">
-                        Dermatologist tested
-                    </span>
-                    <span class="rounded-full border border-amber-200 bg-amber-50/80 px-4 py-2 text-sm font-medium text-amber-700 shadow-sm">
-                        Fast dispatch
-                    </span>
-                </div>
-
-                <div class="mt-12 rounded-[24px] border border-white/70 bg-white/50 p-5 shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-violet-500 text-xl text-white shadow-lg shadow-pink-200">
-                            ✦
+        <!-- Main Glass Card -->
+        <div class="auth-card">
+            <!-- Left Side (Design) -->
+            <div class="auth-card__left">
+                <div class="auth-card__left-inner">
+                    <a href="/" class="auth-logo auth-logo--light">
+                        <div class="auth-logo__icon bg-white text-pink-500 shadow-md">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
+                            </svg>
                         </div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-800">Glow edit</p>
-                            <p class="mt-0.5 text-sm text-slate-600">Hydration, softness, and shine in one place.</p>
-                        </div>
+                        <span class="auth-logo__text text-white">
+                            Skim<span class="text-pink-200">Shop</span>
+                        </span>
+                    </a>
+
+                    <div class="mt-auto mb-10">
+                        <h1 class="text-3xl font-bold text-white mb-4">Hey, Hello!</h1>
+                        <p class="text-pink-100 text-sm leading-relaxed max-w-xs">
+                            Discover luxe skincare, haircare, and self-care essentials from independent suppliers. Curated for confidence, delivered with care.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Side: Auth Form -->
-            <div class="w-full p-8 sm:p-12 lg:w-1/2 lg:p-14 xl:p-16 flex flex-col justify-center bg-white/65">
-                
-                <!-- Mobile logo -->
-                <div class="mb-8 flex justify-center lg:hidden">
-                    <a href="/" class="flex items-center gap-2.5">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-violet-500 text-sm font-bold text-white shadow-lg shadow-pink-200">
-                            S
+            <!-- Right Side (Form) -->
+            <div class="auth-card__right">
+                <!-- Mobile Logo -->
+                <div class="sm:hidden flex justify-center mb-6">
+                    <a href="/" class="auth-logo">
+                        <div class="auth-logo__icon bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md">
+                            <svg viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z" />
+                            </svg>
                         </div>
-                        <span class="text-sm font-bold tracking-wide text-slate-800">SKIMS SHOP</span>
+                        <span class="auth-logo__text text-slate-800">
+                            Skim<span class="text-pink-500">Shop</span>
+                        </span>
                     </a>
                 </div>
 
-                <div class="mx-auto w-full max-w-[420px]">
-                    <!-- Render the Auth slot directly (no extra white box) -->
+                <div class="auth-card__body w-full max-w-sm mx-auto">
                     <slot />
+                </div>
 
-                    <div v-if="$slots.footer" class="mt-8 text-center pt-6 border-t border-slate-200/60">
-                        <slot name="footer" />
-                    </div>
+                <div v-if="$slots.footer" class="auth-card__footer w-full max-w-sm mx-auto">
+                    <slot name="footer" />
                 </div>
             </div>
         </div>
     </div>
 </template>
+
+<style scoped>
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Decorative floating blobs */
+.auth-bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.auth-bg-blob--1 {
+    width: 400px;
+    height: 400px;
+    background: rgba(236, 64, 122, 0.5);
+    top: -100px;
+    left: -100px;
+    animation: float 8s ease-in-out infinite;
+}
+
+.auth-bg-blob--2 {
+    width: 350px;
+    height: 350px;
+    background: rgba(156, 39, 176, 0.4);
+    bottom: -80px;
+    right: -80px;
+    animation: float 10s ease-in-out infinite reverse;
+}
+
+.auth-bg-blob--3 {
+    width: 250px;
+    height: 250px;
+    background: rgba(244, 143, 177, 0.6);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: float 12s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-30px); }
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 900px;
+    min-height: 550px;
+    /* Glassmorphism Effect */
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    animation: cardAppear 0.5s ease-out;
+}
+
+@media (min-width: 768px) {
+    .auth-card {
+        flex-direction: row;
+    }
+}
+
+.auth-card__left {
+    display: none;
+    position: relative;
+    /* Semi-transparent pink gradient on the left side of the glass card */
+    background: linear-gradient(135deg, rgba(236, 64, 122, 0.75), rgba(156, 39, 176, 0.75));
+}
+
+@media (min-width: 768px) {
+    .auth-card__left {
+        display: flex;
+        flex: 1 1 45%;
+        max-width: 45%;
+    }
+}
+
+.auth-card__left-inner {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.auth-card__right {
+    flex: 1;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Solid enough white to make the form readable */
+    background: rgba(255, 255, 255, 0.65);
+}
+
+@media (min-width: 768px) {
+    .auth-card__right {
+        padding: 3rem;
+    }
+}
+
+/* Logo Styles */
+.auth-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.auth-logo:hover {
+    opacity: 0.9;
+}
+
+.auth-logo__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+}
+
+.auth-logo__text {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.auth-card__footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>

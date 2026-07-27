@@ -1,9 +1,9 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 </script>
 
 <template>
-    <AppLayout title="My Orders">
+    <CustomerLayout title="My Orders">
         <div class="page-container space-y-6">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">My Orders</h1>
@@ -13,5 +13,5 @@ import AppLayout from '@/Layouts/AppLayout.vue';
                 <p class="text-slate-400 italic">Placeholder for Order History</p>
             </div>
         </div>
-    </AppLayout>
+    </CustomerLayout>
 </template>

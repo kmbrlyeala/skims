@@ -19,13 +19,10 @@ use Inertia\Inertia;
 | Public Routes
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin'       => Route::has('login'),
-        'canRegister'    => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion'     => PHP_VERSION,
-    ]);
+// The Landing Page is ONLY accessible for guests.
+// If a logged-in user visits '/', the 'guest' middleware will redirect them to '/dashboard'.
+Route::middleware('guest')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Customer\CatalogController::class, 'home'])->name('home');
 });
 
 /*
@@ -152,11 +149,9 @@ Route::middleware([
         ->name('customer.')
         ->group(function () {
             Route::get('/', [\App\Http\Controllers\Customer\UiMockupController::class, 'dashboard'])->name('dashboard');
-            Route::get('/home', [\App\Http\Controllers\Customer\CatalogController::class, 'home'])->name('home');
-            
-            // Real Customer Controllers
+            // Catalog routes
             Route::get('/shop', [\App\Http\Controllers\Customer\CatalogController::class, 'index'])->name('shop');
-            
+
             // Cart
             Route::get('/cart', [\App\Http\Controllers\Customer\CartController::class, 'index'])->name('cart');
             Route::post('/cart', [\App\Http\Controllers\Customer\CartController::class, 'store'])->name('cart.store');
