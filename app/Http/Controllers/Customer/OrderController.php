@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
-use App\Models\InventoryItem;
+
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
@@ -31,15 +31,15 @@ class OrderController extends Controller
         $user = $request->user();
 
         // Direct "Buy Now" purchase
-        if ($request->has('inventory_item_id')) {
+        if ($request->has('product_id')) {
             $validated = $request->validate([
-                'inventory_item_id' => ['required', 'exists:inventory_items,id'],
-                'quantity'          => ['required', 'integer', 'min:1'],
+                'product_id' => ['required', 'exists:products,id'],
+                'quantity'   => ['required', 'integer', 'min:1'],
             ]);
 
-            $product = InventoryItem::findOrFail($validated['inventory_item_id']);
+            $product = \App\Models\Product::with('inventory')->findOrFail($validated['product_id']);
 
-            if ($product->status !== 'active' || $product->stock < $validated['quantity']) {
+            if (!$product->is_active || $product->live_stock < $validated['quantity']) {
                 return redirect()->back()->with('error', 'Not enough stock available.');
             }
 
@@ -54,22 +54,18 @@ class OrderController extends Controller
 
                 OrderItem::create([
                     'order_id'          => $newOrder->id,
-                    'inventory_item_id' => $product->id,
-                    'supplier_id'       => $product->supplier_id,
+                    'product_id'        => $product->id,
                     'quantity'          => $validated['quantity'],
                     'price'             => $product->price,
                 ]);
 
-                $product->decrement('stock', $validated['quantity']);
-
-                // Sync with Supply Chain Inventory and Trigger Auto-Reorder
-                $b2bProduct = \App\Models\Product::where('sku', $product->sku)->first();
-                if ($b2bProduct && $b2bProduct->inventory) {
-                    $b2bProduct->inventory->decrement('on_hand_qty', $validated['quantity']);
+                // Decrement stock
+                if ($product->inventory) {
+                    $product->inventory->decrement('on_hand_qty', $validated['quantity']);
                     
                     // Trigger Auto-Reorder Check
                     app(\App\Actions\Inventory\CheckAndCreateReorderDraft::class)
-                        ->handle($b2bProduct->inventory->fresh());
+                        ->handle($product->inventory->fresh());
                 }
 
                 return $newOrder;
