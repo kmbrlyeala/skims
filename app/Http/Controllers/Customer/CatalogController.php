@@ -10,6 +10,28 @@ use Inertia\Response;
 
 class CatalogController extends Controller
 {
+    public function home(): Response
+    {
+        $products = Product::with('inventory')
+            ->active()
+            ->inStock()
+            ->latest()
+            ->take(8)
+            ->get()
+            ->map(fn ($p) => [
+                'id'          => $p->id,
+                'name'        => $p->name,
+                'price'       => $p->price,
+                'photo_url'   => collect($p->photo_urls)->first(),
+                'stock'       => $p->live_stock,
+            ]);
+
+        return Inertia::render('Customer/Home', [
+            'featuredProducts' => $products->take(4),
+            'newArrivals'      => $products->skip(4)->take(4)->values(),
+        ]);
+    }
+
     public function index(Request $request): Response
     {
         $query = Product::with('inventory')

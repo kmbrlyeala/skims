@@ -152,7 +152,7 @@ Route::middleware([
         ->name('customer.')
         ->group(function () {
             Route::get('/', [\App\Http\Controllers\Customer\UiMockupController::class, 'dashboard'])->name('dashboard');
-            Route::get('/home', [\App\Http\Controllers\Customer\UiMockupController::class, 'home'])->name('home');
+            Route::get('/home', [\App\Http\Controllers\Customer\CatalogController::class, 'home'])->name('home');
             
             // Real Customer Controllers
             Route::get('/shop', [\App\Http\Controllers\Customer\CatalogController::class, 'index'])->name('shop');

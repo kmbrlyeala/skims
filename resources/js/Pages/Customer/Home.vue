@@ -1,143 +1,170 @@
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+
+defineProps({
+    featuredProducts: {
+        type: Array,
+        default: () => []
+    },
+    newArrivals: {
+        type: Array,
+        default: () => []
+    }
+});
 </script>
 
 <template>
-    <AppLayout title="Home">
-        <div class="space-y-12 pb-16">
+    <AppLayout title="Discover Your Glow">
+        <div class="space-y-16 pb-20">
             
             <!-- Hero / Search Section -->
-            <div class="relative bg-gradient-to-r from-pink-100 to-violet-100 px-6 py-16 sm:px-12 sm:py-24 rounded-3xl overflow-hidden shadow-inner">
-                <div class="relative z-10 max-w-2xl mx-auto text-center">
-                    <h1 class="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-                        Discover Your Glow
+            <div class="relative px-6 py-20 sm:px-12 sm:py-32 rounded-3xl overflow-hidden shadow-2xl mx-4 sm:mx-8 mt-6 border border-white/40">
+                <!-- Dynamic Background -->
+                <div class="absolute inset-0 bg-gradient-to-br from-pink-100 via-rose-50 to-violet-100 opacity-90 z-0"></div>
+                <div class="absolute -top-32 -right-32 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 animate-blob z-0"></div>
+                <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-violet-300 rounded-full mix-blend-multiply filter blur-[80px] opacity-60 animate-blob animation-delay-2000 z-0"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-50 animate-blob animation-delay-4000 z-0"></div>
+
+                <div class="relative z-10 max-w-3xl mx-auto text-center">
+                    <span class="inline-block py-1 px-3 rounded-full bg-white/60 text-pink-600 text-xs font-bold tracking-widest uppercase mb-6 shadow-sm backdrop-blur-md border border-white">
+                        Premium Beauty E-Commerce
+                    </span>
+                    <h1 class="text-5xl font-extrabold tracking-tight text-slate-900 sm:text-7xl font-sans drop-shadow-sm">
+                        Discover Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-600">Glow</span>
                     </h1>
-                    <p class="mt-4 text-lg text-slate-600">
-                        Shop the latest and greatest in skincare and beauty.
+                    <p class="mt-6 text-lg text-slate-700 font-medium max-w-xl mx-auto leading-relaxed">
+                        Shop the latest and greatest in curated skincare, makeup, and self-care essentials.
                     </p>
-                    <div class="mt-8 flex justify-center">
-                        <div class="relative w-full max-w-lg">
-                            <input type="text" class="w-full rounded-full border-0 py-4 pl-6 pr-14 shadow-md ring-1 ring-inset ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-pink-500 sm:text-sm sm:leading-6" placeholder="Search products...">
-                            <button class="absolute right-2 top-2 rounded-full bg-pink-500 p-2 text-white shadow hover:bg-pink-600">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                            </button>
-                        </div>
+                    <div class="mt-10 flex justify-center">
+                        <Link :href="route('customer.shop')" class="btn-primary px-8 py-4 text-lg shadow-pink-500/30">
+                            Shop the Collection
+                            <svg class="w-5 h-5 ml-2 -mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </Link>
                     </div>
                 </div>
-                <!-- Decorative background elements -->
-                <div class="absolute -top-24 -right-24 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
-                <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-violet-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
             </div>
 
             <!-- Categories -->
-            <div class="px-4 sm:px-6 lg:px-8">
-                <h2 class="text-xl font-bold text-slate-900 mb-6">Shop by Category</h2>
-                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-                    <div class="group cursor-pointer flex flex-col items-center gap-3">
-                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-pink-50 transition-colors group-hover:bg-pink-100 shadow-sm">
-                            <span class="text-3xl">✨</span>
-                        </div>
-                        <span class="text-sm font-medium text-slate-700 group-hover:text-pink-600 transition-colors">Skincare</span>
+            <div class="px-6 sm:px-12">
+                <div class="flex items-end justify-between mb-8">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Shop by Category</h2>
+                        <p class="text-sm text-slate-500 mt-1">Explore our curated collections</p>
                     </div>
-                    <div class="group cursor-pointer flex flex-col items-center gap-3">
-                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-violet-50 transition-colors group-hover:bg-violet-100 shadow-sm">
-                            <span class="text-3xl">💄</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-4 xl:gap-8">
+                    <!-- Skincare -->
+                    <Link :href="route('customer.shop', { search: 'skincare' })" class="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-pink-200">
+                        <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-pink-50 transition-transform duration-500 group-hover:scale-150 group-hover:bg-pink-100"></div>
+                        <div class="relative flex flex-col items-start gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 text-2xl group-hover:ring-pink-200 transition-colors">✨</div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 group-hover:text-pink-600 transition-colors">Skincare</h3>
+                                <p class="text-xs text-slate-500 mt-1">Cleansers, serums & more</p>
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-slate-700 group-hover:text-violet-600 transition-colors">Makeup</span>
-                    </div>
-                    <div class="group cursor-pointer flex flex-col items-center gap-3">
-                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 transition-colors group-hover:bg-emerald-100 shadow-sm">
-                            <span class="text-3xl">🧴</span>
+                    </Link>
+                    <!-- Makeup -->
+                    <Link :href="route('customer.shop', { search: 'makeup' })" class="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-violet-200">
+                        <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-violet-50 transition-transform duration-500 group-hover:scale-150 group-hover:bg-violet-100"></div>
+                        <div class="relative flex flex-col items-start gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 text-2xl group-hover:ring-violet-200 transition-colors">💄</div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 group-hover:text-violet-600 transition-colors">Makeup</h3>
+                                <p class="text-xs text-slate-500 mt-1">Face, eyes & lips</p>
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-slate-700 group-hover:text-emerald-600 transition-colors">Body Care</span>
-                    </div>
-                    <div class="group cursor-pointer flex flex-col items-center gap-3">
-                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 transition-colors group-hover:bg-blue-100 shadow-sm">
-                            <span class="text-3xl">💆‍♀️</span>
+                    </Link>
+                    <!-- Body Care -->
+                    <Link :href="route('customer.shop', { search: 'body' })" class="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-emerald-200">
+                        <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-emerald-50 transition-transform duration-500 group-hover:scale-150 group-hover:bg-emerald-100"></div>
+                        <div class="relative flex flex-col items-start gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 text-2xl group-hover:ring-emerald-200 transition-colors">🧴</div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Body Care</h3>
+                                <p class="text-xs text-slate-500 mt-1">Lotions & scrubs</p>
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">Hair Care</span>
-                    </div>
+                    </Link>
+                    <!-- Hair Care -->
+                    <Link :href="route('customer.shop', { search: 'hair' })" class="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:ring-blue-200">
+                        <div class="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-blue-50 transition-transform duration-500 group-hover:scale-150 group-hover:bg-blue-100"></div>
+                        <div class="relative flex flex-col items-start gap-4">
+                            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-100 text-2xl group-hover:ring-blue-200 transition-colors">💆‍♀️</div>
+                            <div>
+                                <h3 class="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">Hair Care</h3>
+                                <p class="text-xs text-slate-500 mt-1">Shampoos & treatments</p>
+                            </div>
+                        </div>
+                    </Link>
                 </div>
             </div>
 
             <!-- Featured Products -->
-            <div class="px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-slate-900">Featured Products</h2>
-                    <a href="#" class="text-sm font-medium text-pink-600 hover:text-pink-500">View all &rarr;</a>
+            <div class="px-6 sm:px-12">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Featured Products</h2>
+                    <Link :href="route('customer.shop')" class="text-sm font-bold text-pink-600 hover:text-pink-500 transition-colors">View all &rarr;</Link>
                 </div>
-                <div class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-                    <!-- Product Card -->
-                    <div class="group relative">
-                        <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-2xl bg-slate-100 flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105">
-                            🧴
-                        </div>
-                        <div class="mt-4 flex justify-between">
-                            <div>
-                                <h3 class="text-sm text-slate-700">
-                                    <a href="#">
-                                        <span aria-hidden="true" class="absolute inset-0"></span>
-                                        Hydrating Moisturizer
-                                    </a>
-                                </h3>
-                                <p class="mt-1 text-sm text-slate-500">Skincare</p>
+                
+                <div v-if="featuredProducts.length > 0" class="grid grid-cols-1 gap-y-10 gap-x-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+                    <div v-for="product in featuredProducts" :key="product.id" class="group relative flex flex-col bg-white rounded-3xl shadow-sm ring-1 ring-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                        <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden bg-slate-50 relative">
+                            <img v-if="product.photo_url" :src="product.photo_url" :alt="product.name" class="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-110" />
+                            <div v-else class="flex h-full items-center justify-center text-4xl text-slate-300">✦</div>
+                            
+                            <!-- Badges -->
+                            <div class="absolute top-4 left-4 flex flex-col gap-2">
+                                <span v-if="product.stock < 1" class="bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider">Out of Stock</span>
+                                <span v-else class="bg-white/80 backdrop-blur-md text-slate-900 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">Bestseller</span>
                             </div>
-                            <p class="text-sm font-bold text-slate-900">₱450.00</p>
                         </div>
-                    </div>
-                    <div class="group relative">
-                        <div class="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-2xl bg-slate-100 flex items-center justify-center text-4xl shadow-sm transition-transform group-hover:scale-105">
-                            ✨
-                        </div>
-                        <div class="mt-4 flex justify-between">
-                            <div>
-                                <h3 class="text-sm text-slate-700">
-                                    <a href="#">
-                                        <span aria-hidden="true" class="absolute inset-0"></span>
-                                        Vitamin C Serum
-                                    </a>
-                                </h3>
-                                <p class="mt-1 text-sm text-slate-500">Skincare</p>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <h3 class="text-base font-bold text-slate-900 truncate">
+                                <Link :href="route('customer.shop', { search: product.name })">
+                                    <span aria-hidden="true" class="absolute inset-0"></span>
+                                    {{ product.name }}
+                                </Link>
+                            </h3>
+                            <div class="mt-auto pt-4 flex items-center justify-between relative z-10">
+                                <p class="text-lg font-extrabold text-slate-900">₱{{ Number(product.price).toFixed(2) }}</p>
+                                <button class="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 transition-colors group-hover:bg-pink-500 group-hover:text-white" :disabled="product.stock < 1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                </button>
                             </div>
-                            <p class="text-sm font-bold text-slate-900">₱850.00</p>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- New Arrivals -->
-            <div class="px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-slate-900">New Arrivals</h2>
-                    <a href="#" class="text-sm font-medium text-pink-600 hover:text-pink-500">View all &rarr;</a>
-                </div>
-                <div class="glass-card flex items-center justify-center p-12">
-                    <p class="text-slate-400 italic">New products will appear here...</p>
+                <div v-else class="glass-card flex items-center justify-center p-12">
+                    <p class="text-slate-400 italic">No featured products available.</p>
                 </div>
             </div>
 
-            <!-- Best Sellers -->
-            <div class="px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-slate-900">Best Sellers</h2>
-                    <a href="#" class="text-sm font-medium text-pink-600 hover:text-pink-500">View all &rarr;</a>
-                </div>
-                <div class="glass-card flex items-center justify-center p-12">
-                    <p class="text-slate-400 italic">Best selling products will appear here...</p>
-                </div>
-            </div>
-
-            <!-- Sale Products -->
-            <div class="px-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-bold text-red-600 flex items-center gap-2">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" /></svg>
-                        Sale Products
-                    </h2>
-                    <a href="#" class="text-sm font-medium text-red-600 hover:text-red-500">View all &rarr;</a>
-                </div>
-                <div class="glass-card flex items-center justify-center p-12">
-                    <p class="text-slate-400 italic">Discounted products will appear here...</p>
+            <!-- New Arrivals Banner -->
+            <div class="px-6 sm:px-12">
+                <div class="relative bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex flex-col sm:flex-row items-center justify-between p-10 sm:p-16">
+                    <div class="absolute inset-0 opacity-40 mix-blend-color-dodge">
+                        <div class="absolute -top-24 -right-24 w-96 h-96 bg-violet-500 rounded-full mix-blend-screen filter blur-[100px]"></div>
+                        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-pink-500 rounded-full mix-blend-screen filter blur-[100px]"></div>
+                    </div>
+                    <div class="relative z-10 text-center sm:text-left mb-8 sm:mb-0 max-w-lg">
+                        <h2 class="text-3xl font-extrabold text-white sm:text-4xl tracking-tight">The Summer Collection</h2>
+                        <p class="mt-4 text-slate-300 text-lg">Refresh your routine with our newest arrivals, designed to keep you glowing all season long.</p>
+                        <Link :href="route('customer.shop')" class="mt-8 inline-block btn-primary shadow-pink-500/50">
+                            Explore New Arrivals
+                        </Link>
+                    </div>
+                    <div class="relative z-10 w-full sm:w-1/2 flex justify-center sm:justify-end gap-4">
+                        <div v-for="(product, idx) in newArrivals.slice(0, 2)" :key="product.id" class="w-40 sm:w-48 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-3 transform transition-transform hover:-translate-y-2 hover:shadow-2xl hover:bg-white/20" :class="idx === 1 ? 'mt-8' : ''">
+                            <div class="aspect-square rounded-xl overflow-hidden bg-slate-800 mb-3 relative">
+                                <img v-if="product.photo_url" :src="product.photo_url" class="h-full w-full object-cover" />
+                                <div v-else class="flex h-full items-center justify-center text-2xl text-slate-600">✦</div>
+                            </div>
+                            <h4 class="text-white font-semibold text-sm truncate">{{ product.name }}</h4>
+                            <p class="text-pink-300 font-bold text-sm mt-1">₱{{ Number(product.price).toFixed(2) }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
