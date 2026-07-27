@@ -79,7 +79,7 @@ class OrderController extends Controller
         }
 
         // Cart Checkout
-        $cartItems = Cart::with('inventoryItem')
+        $cartItems = Cart::with('product.inventory')
             ->where('customer_id', $user->id)
             ->get();
 
@@ -89,15 +89,16 @@ class OrderController extends Controller
 
         // Verify stock availability
         foreach ($cartItems as $cartItem) {
-            if ($cartItem->inventoryItem->stock < $cartItem->quantity) {
+            $stock = $cartItem->product->inventory ? $cartItem->product->inventory->on_hand_qty : 0;
+            if ($stock < $cartItem->quantity) {
                 return redirect()->back()->with(
                     'error',
-                    "Not enough stock for {$cartItem->inventoryItem->name}."
+                    "Not enough stock for {$cartItem->product->name}."
                 );
             }
         }
 
-        $total = $cartItems->sum(fn ($item) => $item->quantity * $item->inventoryItem->price);
+        $total = $cartItems->sum(fn ($item) => $item->quantity * $item->product->price);
 
         $order = DB::transaction(function () use ($user, $cartItems, $total) {
             $newOrder = Order::create([
@@ -109,17 +110,13 @@ class OrderController extends Controller
             foreach ($cartItems as $cartItem) {
                 OrderItem::create([
                     'order_id'          => $newOrder->id,
-                    'inventory_item_id' => $cartItem->inventory_item_id,
-                    'supplier_id'       => $cartItem->inventoryItem->supplier_id,
+                    'product_id'        => $cartItem->product_id,
                     'quantity'          => $cartItem->quantity,
-                    'price'             => $cartItem->inventoryItem->price,
+                    'price'             => $cartItem->product->price,
                 ]);
 
-                // Decrement stock
-                $cartItem->inventoryItem->decrement('stock', $cartItem->quantity);
-
                 // Sync with Supply Chain Inventory and Trigger Auto-Reorder
-                $b2bProduct = \App\Models\Product::where('sku', $cartItem->inventoryItem->sku)->first();
+                $b2bProduct = $cartItem->product;
                 if ($b2bProduct && $b2bProduct->inventory) {
                     $b2bProduct->inventory->decrement('on_hand_qty', $cartItem->quantity);
                     
@@ -144,7 +141,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['items.inventoryItem:id,name,image_url,sku', 'items.supplier:id,name']);
+        $order->load(['items.product:id,name,photos,sku']);
 
         return Inertia::render('Customer/OrderDetail', [
             'order' => $order,
