@@ -7,21 +7,29 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 
 const props = defineProps({
-    items: Array,
+    products: Array,
 });
 
 const showForm = ref(false);
 const showDeleteModal = ref(false);
 const activeItem = ref(null);
 
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) {
+        newSet.delete(id);
+    } else {
+        newSet.add(id);
+    }
+    expandedRows.value = newSet;
+};
+
 const form = useForm({
     name: '',
-    description: '',
-    image_url: '',
     sku: '',
-    stock: 0,
-    price: 0,
-    status: 'draft',
+    unit_cost: 0,
+    moq: 1,
 });
 
 const resetForm = () => {
@@ -39,22 +47,21 @@ const openCreate = () => {
 const openEdit = (item) => {
     activeItem.value = item;
     form.name = item.name;
-    form.description = item.description || '';
-    form.image_url = item.image_url || '';
     form.sku = item.sku;
-    form.stock = item.stock;
-    form.price = item.price;
-    form.status = item.status;
+    form.unit_cost = item.unit_cost;
+    form.moq = item.moq;
     showForm.value = true;
 };
 
 const submit = () => {
     if (activeItem.value) {
         form.put(route('supplier.inventory.update', activeItem.value.id), {
+            preserveScroll: true,
             onSuccess: () => resetForm(),
         });
     } else {
         form.post(route('supplier.inventory.store'), {
+            preserveScroll: true,
             onSuccess: () => resetForm(),
         });
     }
@@ -83,8 +90,7 @@ const statusClass = (status) => ({
 }[status] || 'badge-draft');
 
 const inventoryStats = reactive({
-    totalStock: props.items.reduce((sum, item) => sum + Number(item.stock || 0), 0),
-    activeItems: props.items.filter((item) => item.status === 'active').length,
+    totalProducts: props.products ? props.products.length : 0,
 });
 </script>
 
@@ -107,16 +113,8 @@ const inventoryStats = reactive({
             <!-- Stats -->
             <div class="grid gap-4 sm:grid-cols-3">
                 <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Stock</p>
-                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ inventoryStats.totalStock }}</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Listings</p>
-                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ inventoryStats.activeItems }}</p>
-                </div>
-                <div class="stat-card">
                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Products</p>
-                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ items.length }}</p>
+                    <p class="mt-2 text-2xl font-bold text-slate-900">{{ inventoryStats.totalProducts }}</p>
                 </div>
             </div>
 
@@ -139,37 +137,21 @@ const inventoryStats = reactive({
                             <input v-model="form.name" class="form-input" required />
                             <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
                         </div>
-                        <div>
-                            <label class="form-label">Description</label>
-                            <textarea v-model="form.description" class="form-input" rows="2" />
-                            <p v-if="form.errors.description" class="mt-1 text-xs text-red-600">{{ form.errors.description }}</p>
-                        </div>
-                        <div>
-                            <label class="form-label">Image URL</label>
-                            <input v-model="form.image_url" type="url" class="form-input" placeholder="https://..." />
-                            <p v-if="form.errors.image_url" class="mt-1 text-xs text-red-600">{{ form.errors.image_url }}</p>
-                        </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label class="form-label">SKU</label>
-                                <input v-model="form.sku" class="form-input" required />
+                                <input v-model="form.sku" class="form-input" required :disabled="activeItem" />
                                 <p v-if="form.errors.sku" class="mt-1 text-xs text-red-600">{{ form.errors.sku }}</p>
                             </div>
                             <div>
-                                <label class="form-label">Status</label>
-                                <select v-model="form.status" class="form-select">
-                                    <option value="draft">Draft</option>
-                                    <option value="active">Active</option>
-                                    <option value="hidden">Hidden</option>
-                                </select>
+                                <label class="form-label">Minimum Order Qty (MOQ)</label>
+                                <input v-model.number="form.moq" type="number" min="1" class="form-input" />
+                                <p v-if="form.errors.moq" class="mt-1 text-xs text-red-600">{{ form.errors.moq }}</p>
                             </div>
                             <div>
-                                <label class="form-label">Stock</label>
-                                <input v-model.number="form.stock" type="number" min="0" class="form-input" />
-                            </div>
-                            <div>
-                                <label class="form-label">Price (₱)</label>
-                                <input v-model.number="form.price" type="number" min="0" step="0.01" class="form-input" />
+                                <label class="form-label">Unit Cost (₱)</label>
+                                <input v-model.number="form.unit_cost" type="number" min="0" step="0.01" class="form-input" />
+                                <p v-if="form.errors.unit_cost" class="mt-1 text-xs text-red-600">{{ form.errors.unit_cost }}</p>
                             </div>
                         </div>
                     </form>
@@ -203,41 +185,53 @@ const inventoryStats = reactive({
             <!-- Products Table -->
             <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th>Product</th>
-                                <th>SKU</th>
-                                <th>Stock</th>
-                                <th>Price</th>
-                                <th>Status</th>
-                                <th class="text-right">Actions</th>
+                                <th class="py-4 px-4 font-bold">Product</th>
+                                <th class="py-4 px-4 font-bold">SKU</th>
+                                <th class="py-4 px-4 font-bold">Category</th>
+                                <th class="py-4 px-4 font-bold text-center">MOQ</th>
+                                <th class="py-4 px-4 font-bold text-right">Unit Cost</th>
+                                <th class="py-4 px-4 font-bold text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr v-for="item in items" :key="item.id">
-                                <td>
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
+                            <tr v-for="item in products" :key="item.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
                                     <div class="flex items-center gap-3">
-                                        <img v-if="item.image_url" :src="item.image_url" :alt="item.name" class="h-9 w-9 rounded-lg object-cover" />
-                                        <div v-else class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">—</div>
+                                        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">—</div>
                                         <div>
                                             <p class="font-medium text-slate-900">{{ item.name }}</p>
-                                            <p v-if="item.description" class="max-w-[200px] truncate text-xs text-slate-400">{{ item.description }}</p>
                                         </div>
                                     </div>
+                                    <button @click="toggleRow(item.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(item.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
                                 </td>
-                                <td class="font-mono text-xs text-slate-500">{{ item.sku }}</td>
-                                <td>
-                                    <span :class="item.stock < 10 ? 'text-red-600 font-semibold' : ''">{{ item.stock }}</span>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">SKU</span>
+                                    <span class="font-mono text-xs text-slate-500">{{ item.sku }}</span>
                                 </td>
-                                <td class="font-semibold">₱{{ Number(item.price).toFixed(2) }}</td>
-                                <td><span class="badge" :class="statusClass(item.status)">{{ item.status }}</span></td>
-                                <td class="text-right">
-                                    <div class="flex justify-end items-center">
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Category</span>
+                                    <span class="text-slate-600">{{ item.category }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">MOQ</span>
+                                    <span class="text-slate-600">{{ item.moq }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Unit Cost</span>
+                                    <span class="font-semibold">₱{{ Number(item.unit_cost).toFixed(2) }}</span>
+                                </td>
+                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
+                                    <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
                                         <Dropdown align="right" width="48">
                                             <template #trigger>
-                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                     </svg>
                                                 </button>
@@ -255,11 +249,13 @@ const inventoryStats = reactive({
                                     </div>
                                 </td>
                             </tr>
+                            <tr v-if="!products.length" class="block md:table-row">
+                                <td colspan="6" class="py-12 text-center text-sm text-slate-400 block md:table-cell">
+                                    No products yet. Click "Add Product" to get started.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
-                </div>
-                <div v-if="!items.length" class="py-12 text-center text-sm text-slate-400">
-                    No products yet. Click "Add Product" to get started.
                 </div>
             </div>
         </div>

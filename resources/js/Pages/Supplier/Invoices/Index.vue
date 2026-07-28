@@ -1,16 +1,16 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DialogModal from '@/Components/DialogModal.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 
 const props = defineProps({
-    deliveries: Array
+    invoices: Array
 });
 
-const showShipModal = ref(false);
+const showPaymentModal = ref(false);
 const activeItem = ref(null);
 
 const expandedRows = ref(new Set());
@@ -24,35 +24,30 @@ const toggleRow = (id) => {
     expandedRows.value = newSet;
 };
 
-const shipForm = useForm({
-    tracking_number: ''
-});
-
-const openShipModal = (item) => {
+const openPaymentModal = (item) => {
     activeItem.value = item;
-    shipForm.reset();
-    showShipModal.value = true;
+    showPaymentModal.value = true;
 };
 
-const markShipped = () => {
-    shipForm.post(route('supplier.deliveries.ship', activeItem.value.id), {
+const markPaid = () => {
+    router.post(route('supplier.invoices.mark-paid', activeItem.value.order_id), {}, {
         preserveScroll: true,
         onSuccess: () => {
-            showShipModal.value = false;
+            showPaymentModal.value = false;
         }
     });
 };
 
 const statusClass = (status) => {
-    if (status === 'shipped') return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
-    if (status === 'received' || status === 'partially_received') return 'bg-blue-50 text-blue-700 ring-blue-600/20';
-    return 'bg-purple-50 text-purple-700 ring-purple-600/20';
+    if (status === 'Paid') return 'bg-emerald-50 text-emerald-700 ring-emerald-600/20';
+    if (status === 'Overdue') return 'bg-red-50 text-red-700 ring-red-600/20';
+    return 'bg-orange-50 text-orange-700 ring-orange-600/20';
 };
 
 let pollInterval = null;
 onMounted(() => {
     pollInterval = setInterval(() => {
-        router.reload({ only: ['deliveries'], preserveScroll: true, preserveState: true });
+        router.reload({ only: ['invoices'], preserveScroll: true, preserveState: true });
     }, 5000);
 });
 onUnmounted(() => {
@@ -61,11 +56,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <AppLayout title="Deliveries">
+    <AppLayout title="Invoices & Billing">
         <div class="page-container space-y-6">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900">Deliveries</h1>
-                <p class="mt-1 text-sm text-slate-500">Manage order fulfillment and tracking details</p>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Invoices & Billing</h1>
+                    <p class="mt-1 text-sm text-slate-500">Manage your invoices and payment statuses</p>
+                </div>
             </div>
 
             <!-- Table -->
@@ -74,16 +71,17 @@ onUnmounted(() => {
                     <table class="w-full text-left text-sm text-slate-600 block md:table">
                         <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th class="py-4 px-4 font-bold">Delivery ID</th>
+                                <th class="py-4 px-4 font-bold">Invoice No.</th>
                                 <th class="py-4 px-4 font-bold">PO Number</th>
-                                <th class="py-4 px-4 font-bold">Date</th>
-                                <th class="py-4 px-4 font-bold">Tracking Ref</th>
+                                <th class="py-4 px-4 font-bold">Amount</th>
+                                <th class="py-4 px-4 font-bold">Issue Date</th>
+                                <th class="py-4 px-4 font-bold">Due Date</th>
                                 <th class="py-4 px-4 font-bold text-center">Status</th>
                                 <th class="py-4 px-4 font-bold text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
-                            <tr v-for="item in deliveries" :key="item.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                            <tr v-for="item in invoices" :key="item.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
                                 <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
                                     <span class="font-bold text-slate-900">{{ item.id }}</span>
                                     <button @click="toggleRow(item.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
@@ -95,16 +93,20 @@ onUnmounted(() => {
                                     <span class="text-slate-700">{{ item.po }}</span>
                                 </td>
                                 <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Date</span>
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Amount</span>
+                                    <span class="font-semibold text-slate-900">{{ item.amount }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Issue Date</span>
                                     <span class="text-slate-700">{{ item.date }}</span>
                                 </td>
                                 <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Tracking Ref</span>
-                                    <span class="text-slate-700 font-mono text-xs">{{ item.tracking || '-' }}</span>
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Due Date</span>
+                                    <span class="text-slate-700">{{ item.due }}</span>
                                 </td>
                                 <td class="py-3 px-4 md:text-center border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
                                     <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset" :class="statusClass(item.status)">{{ item.status.replace('_', ' ') }}</span>
+                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset" :class="statusClass(item.status)">{{ item.status }}</span>
                                 </td>
                                 <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
                                     <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
@@ -118,22 +120,19 @@ onUnmounted(() => {
                                                 </button>
                                             </template>
                                             <template #content>
-                                                <DropdownLink v-if="item.status === 'preparing'" as="button" @click="openShipModal(item)" class="!text-emerald-600 hover:!bg-emerald-50">
-                                                    Mark as Shipped
+                                                <DropdownLink as="a" :href="route('supplier.invoices.download', item.order_id)" target="_blank">
+                                                    View PDF
                                                 </DropdownLink>
-                                                <DropdownLink as="button">
-                                                    View Details
-                                                </DropdownLink>
-                                                <DropdownLink as="button" v-if="item.status === 'shipped' || item.status === 'received'">
-                                                    Print Packing Slip
+                                                <DropdownLink v-if="item.status !== 'Paid'" as="button" @click="openPaymentModal(item)">
+                                                    Mark as Paid
                                                 </DropdownLink>
                                             </template>
                                         </Dropdown>
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="deliveries.length === 0" class="block md:table-row">
-                                <td colspan="6" class="py-12 text-center text-sm text-slate-400 block md:table-cell">No deliveries found.</td>
+                            <tr v-if="invoices.length === 0" class="block md:table-row">
+                                <td colspan="7" class="py-12 text-center text-sm text-slate-400 block md:table-cell">No invoices found.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -141,25 +140,18 @@ onUnmounted(() => {
             </div>
         </div>
 
-        <!-- Mark Shipped Modal -->
-        <DialogModal :show="showShipModal" @close="showShipModal = false" maxWidth="sm">
+        <!-- Mark Paid Modal -->
+        <DialogModal :show="showPaymentModal" @close="showPaymentModal = false" maxWidth="sm">
             <template #title>
-                <h3 class="text-lg font-bold text-slate-900">Mark Delivery as Shipped</h3>
+                <h3 class="text-lg font-bold text-slate-900">Confirm Payment</h3>
             </template>
             <template #content>
-                <div class="mt-2 space-y-4">
-                    <p class="text-sm text-slate-600">Enter the shipment details for <span class="font-bold">{{ activeItem?.po }}</span>.</p>
-                    
-                    <div>
-                        <label class="form-label">Tracking Number</label>
-                        <input type="text" v-model="shipForm.tracking_number" class="form-input" placeholder="e.g. TRK-123456789">
-                    </div>
-                </div>
+                <p class="text-sm text-slate-600">Are you sure you want to mark invoice <span class="font-bold">{{ activeItem?.id }}</span> as Paid?</p>
             </template>
             <template #footer>
                 <div class="flex items-center justify-end gap-3 w-full">
-                    <button @click="showShipModal = false" class="btn-secondary">Cancel</button>
-                    <button @click="markShipped" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700" :disabled="!shipForm.tracking_number || shipForm.processing">Confirm Shipment</button>
+                    <button @click="showPaymentModal = false" class="btn-secondary">Cancel</button>
+                    <button @click="markPaid" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700">Confirm</button>
                 </div>
             </template>
         </DialogModal>

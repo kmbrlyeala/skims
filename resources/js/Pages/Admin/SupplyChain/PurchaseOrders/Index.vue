@@ -1,7 +1,9 @@
 <script setup>
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 
 const props = defineProps({
     purchaseOrders: Object,
@@ -36,6 +38,14 @@ const formatPRNumber = (prId, createdAt) => {
     if (!prId) return '—';
     const year = new Date(createdAt).getFullYear();
     return `PR-${year}-${String(prId).padStart(4, '0')}`;
+};
+
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    expandedRows.value = newSet;
 };
 
 // Summary Stats
@@ -172,67 +182,98 @@ const summaryStats = computed(() => [
             <!-- Table -->
             <div class="glass-card overflow-hidden !p-0">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead>
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group">
                             <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                                 <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
                                     PO No.
                                     <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                 </th>
-                                <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
+                                <th class="py-4 px-4 font-bold items-center gap-1 cursor-pointer hidden lg:table-cell">
                                     PO Date
-                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <svg class="w-3 h-3 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                 </th>
                                 <th class="py-4 px-4 font-bold">Supplier</th>
-                                <th class="py-4 px-4 font-bold">Reference</th>
+                                <th class="py-4 px-4 font-bold hidden lg:table-cell">Reference</th>
                                 <th class="py-4 px-4 font-bold">Status</th>
                                 <th class="py-4 px-4 font-bold text-center">Total Items</th>
-                                <th class="py-4 px-4 font-bold text-right">Total Amount (₱)</th>
-                                <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
+                                <th class="py-4 px-4 font-bold text-right hidden md:table-cell">Total Amount (₱)</th>
+                                <th class="py-4 px-4 font-bold items-center gap-1 cursor-pointer hidden lg:table-cell">
                                     Expected Delivery
-                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <svg class="w-3 h-3 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                 </th>
                                 <th class="py-4 px-4 font-bold text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr v-for="po in purchaseOrders.data" :key="po.id" class="transition-colors hover:bg-slate-50/50">
-                                <td class="py-4 px-4 font-bold text-slate-900 whitespace-nowrap">{{ po.po_number }}</td>
-                                <td class="py-4 px-4 whitespace-nowrap font-medium text-slate-700">{{ po.created_at }}</td>
-                                <td class="py-4 px-4">
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100 bg-white">
+                            <tr v-for="po in purchaseOrders.data" :key="po.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-4 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0 min-w-[200px]">
+                                    <span class="font-bold text-slate-900">{{ po.po_number }}</span>
+                                    <button @click="toggleRow(po.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(po.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                </td>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(po.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">PO Date</span>
+                                    <span class="font-medium text-slate-700 whitespace-nowrap">{{ po.created_at }}</span>
+                                </td>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(po.id), 'flex md:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Supplier</span>
                                     <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">{{ po.supplier_initial || 'S' }}</div>
+                                        <div class="w-8 h-8 rounded-full bg-slate-200 hidden md:flex items-center justify-center text-sm font-bold text-slate-600 shrink-0">{{ po.supplier_initial || 'S' }}</div>
                                         <div>
                                             <p class="font-bold text-slate-700">{{ po.supplier_name }}</p>
                                             <p class="text-xs text-slate-500">{{ po.supplier_contact || '(02) 8123 4567' }}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-4 px-4 font-medium text-slate-600">{{ formatPRNumber(po.pr_id, po.pr_created_at) }}</td>
-                                <td class="py-4 px-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold ring-1 ring-inset ring-black/5" :class="getStatusBadge(po.status)">
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(po.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Reference</span>
+                                    <span class="font-medium text-slate-600">{{ formatPRNumber(po.pr_id, po.pr_created_at) }}</span>
+                                </td>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(po.id), 'flex md:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
+                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold ring-1 ring-inset ring-black/5 whitespace-nowrap" :class="getStatusBadge(po.status)">
                                         {{ getStatusLabel(po.status, po.status_label) }}
                                     </span>
                                 </td>
-                                <td class="py-4 px-4 text-center font-bold text-slate-700">{{ po.quantity_ordered }}</td>
-                                <td class="py-4 px-4 text-right font-black text-slate-900">₱{{ Number(po.total_cost).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                                <td class="py-4 px-4 font-medium text-slate-600">{{ po.expected_arrival_date || '—' }}</td>
-                                <td class="py-4 px-4">
-                                    <div class="flex justify-center items-center gap-1">
-                                        <Link :href="route(`${routePrefix}.purchase-orders.show`, po.id)" class="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors rounded hover:bg-slate-100" title="View Details">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                        </Link>
-                                        <button class="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors rounded hover:bg-slate-100" title="Print">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6.728 9.75H17.27a.75.75 0 01.75.75v5.25a.75.75 0 01-.75.75H6.728a.75.75 0 01-.75-.75V10.5a.75.75 0 01.75-.75z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 10.5V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0118 6v4.5" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14.25h6" /></svg>
-                                        </button>
-                                        <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded hover:bg-slate-100" title="More options">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v.01M12 12v.01M12 18v.01" /></svg>
-                                        </button>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(po.id), 'flex md:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Total Items</span>
+                                    <span class="font-bold text-slate-700">{{ po.quantity_ordered }}</span>
+                                </td>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(po.id), 'flex md:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Total Amount</span>
+                                    <span class="font-black text-slate-900">₱{{ Number(po.total_cost).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                                </td>
+                                <td class="py-4 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(po.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Expected Delivery</span>
+                                    <span class="font-medium text-slate-600">{{ po.expected_arrival_date || '—' }}</span>
+                                </td>
+                                <td class="py-4 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(po.id), 'flex md:table-cell justify-between items-center': expandedRows.has(po.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Action</span>
+                                    <div class="flex justify-end md:justify-center items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink :href="route(`${routePrefix}.purchase-orders.show`, po.id)">
+                                                    View Details
+                                                </DropdownLink>
+                                                <DropdownLink as="button" @click="() => {}">
+                                                    Print
+                                                </DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!purchaseOrders.data || !purchaseOrders.data.length">
-                                <td colspan="9" class="py-12 text-center text-slate-500">No purchase orders found.</td>
+                            <tr v-if="!purchaseOrders.data || !purchaseOrders.data.length" class="block md:table-row">
+                                <td colspan="9" class="py-12 text-center text-slate-500 block md:table-cell">No purchase orders found.</td>
                             </tr>
                         </tbody>
                     </table>

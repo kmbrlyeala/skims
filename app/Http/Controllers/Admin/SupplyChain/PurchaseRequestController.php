@@ -142,14 +142,16 @@ class PurchaseRequestController extends Controller
         return redirect()->route("{$routePrefix}.purchase-requests.index")->with('success', $message);
     }
 
-    public function approve(Request $request, PurchaseRequest $purchaseRequest): RedirectResponse
+    public function generatePo(Request $request, PurchaseRequest $purchaseRequest): RedirectResponse
     {
-        if (! $request->user()->hasRole('admin')) {
-            abort(403, 'Only admins can approve purchase requests.');
+        // Now any admin or inventory manager might generate PO from an approved request. 
+        // We'll let admins or IMs do it.
+        if (! $request->user()->hasRole(['admin', 'inventory_manager'])) {
+            abort(403, 'Unauthorized to generate purchase orders.');
         }
 
-        if ($purchaseRequest->status !== 'pending_approval') {
-            return redirect()->back()->with('error', 'This PR is not pending approval.');
+        if ($purchaseRequest->status !== 'approved') {
+            return redirect()->back()->with('error', 'Only supplier-approved requests can be converted to Purchase Orders.');
         }
 
         $overrideMoq = (bool) $request->input('override_moq', false);
@@ -195,6 +197,7 @@ class PurchaseRequestController extends Controller
             'status_color'          => $pr->status_color,
             'is_auto_draft'         => $pr->is_auto_draft,
             'notes'                 => $pr->notes,
+            'reject_reason'         => $pr->reject_reason,
             'requester'             => $pr->requester->name,
             'approver'              => $pr->approver?->name,
             'approved_at'           => $pr->approved_at?->toDateString(),

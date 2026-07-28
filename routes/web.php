@@ -73,7 +73,7 @@ Route::middleware([
             Route::get('/purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
             Route::get('/purchase-requests/create', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'create'])->name('purchase-requests.create');
             Route::post('/purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
-            Route::post('/purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
+            Route::post('/purchase-requests/{purchaseRequest}/generate-po', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'generatePo'])->name('purchase-requests.generate-po');
             Route::post('/purchase-requests/{purchaseRequest}/reject', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
 
             Route::get('/purchase-orders', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
@@ -111,6 +111,8 @@ Route::middleware([
             Route::get('purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
             Route::get('purchase-requests/create', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'create'])->name('purchase-requests.create');
             Route::post('purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
+            Route::post('purchase-requests/{purchaseRequest}/generate-po', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'generatePo'])->name('purchase-requests.generate-po');
+            Route::post('purchase-requests/{purchaseRequest}/reject', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
             
             Route::get('purchase-orders', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
             Route::get('purchase-orders/{purchaseOrder}', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
@@ -131,18 +133,37 @@ Route::middleware([
         ->prefix('supplier')
         ->name('supplier.')
         ->group(function () {
-            Route::get('/', [\App\Http\Controllers\Supplier\UiMockupController::class, 'dashboard'])->name('dashboard');
+            Route::get('/', [\App\Http\Controllers\Supplier\DashboardController::class, 'index'])->name('dashboard');
+            
+            // Purchase Requests
             Route::get('/purchase-requests', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
+            Route::post('/purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
+            Route::post('/purchase-requests/{purchaseRequest}/reject', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'reject'])->name('purchase-requests.reject');
+
             Route::get('/purchase-orders', [\App\Http\Controllers\Supplier\PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
             Route::post('/purchase-orders/{purchaseOrder}/status', [\App\Http\Controllers\Supplier\PurchaseOrderController::class, 'updateStatus'])->name('purchase-orders.update-status');
             
-            // Replaced 'deliveries' with 'orders' for B2C customer orders
-            Route::get('/orders', [\App\Http\Controllers\Supplier\SupplierOrderController::class, 'index'])->name('orders.index');
-            Route::post('/orders/{orderItem}/status', [\App\Http\Controllers\Supplier\SupplierOrderController::class, 'updateStatus'])->name('orders.update-status');
+            // Products/Catalog
+            Route::get('/inventory', [\App\Http\Controllers\Supplier\ProductController::class, 'index'])->name('inventory.index');
+            Route::post('/inventory', [\App\Http\Controllers\Supplier\ProductController::class, 'store'])->name('inventory.store');
+            Route::put('/inventory/{supplierProduct}', [\App\Http\Controllers\Supplier\ProductController::class, 'update'])->name('inventory.update');
+            Route::delete('/inventory/{supplierProduct}', [\App\Http\Controllers\Supplier\ProductController::class, 'destroy'])->name('inventory.destroy');
             
-            Route::get('/products-supplied', [\App\Http\Controllers\Supplier\UiMockupController::class, 'productsSupplied'])->name('products-supplied.index');
-            Route::get('/delivery-history', [\App\Http\Controllers\Supplier\UiMockupController::class, 'deliveryHistory'])->name('delivery-history.index');
-            Route::post('/purchase-requests/{purchaseRequest}/approve', [\App\Http\Controllers\Supplier\PurchaseRequestController::class, 'approve'])->name('purchase-requests.approve');
+            // Deliveries
+            Route::get('/deliveries', [\App\Http\Controllers\Supplier\DeliveryController::class, 'index'])->name('deliveries.index');
+            Route::post('/deliveries/{purchaseOrder}/ship', [\App\Http\Controllers\Supplier\DeliveryController::class, 'ship'])->name('deliveries.ship');
+            
+            // Invoices/Billing
+            Route::get('/invoices', [\App\Http\Controllers\Supplier\InvoiceController::class, 'index'])->name('invoices.index');
+            Route::post('/invoices/{purchaseOrder}/mark-paid', [\App\Http\Controllers\Supplier\InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
+            Route::get('/invoices/{purchaseOrder}/download', [\App\Http\Controllers\Supplier\InvoiceController::class, 'downloadPdf'])->name('invoices.download');
+            
+            // Notifications
+            Route::get('/notifications', [\App\Http\Controllers\Supplier\NotificationController::class, 'index'])->name('notifications.index');
+            Route::post('/notifications/mark-read', [\App\Http\Controllers\Supplier\NotificationController::class, 'markAllRead'])->name('notifications.mark-read');
+            
+            // Reports
+            Route::get('/reports', [\App\Http\Controllers\Supplier\ReportController::class, 'index'])->name('reports.index');
         });
 
     /*

@@ -1,8 +1,10 @@
 <script setup>
-import { ref, reactive, computed, watch } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DialogModal from '@/Components/DialogModal.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 
 const props = defineProps({
     purchaseRequests: Object,
@@ -19,6 +21,16 @@ const props = defineProps({
 
 const filters = reactive({ status: props.filters?.status || '', search: props.filters?.search || '' });
 const applyFilters = () => router.get(route(`${props.routePrefix}.purchase-requests.index`), filters, { preserveState: true, replace: true });
+
+let syncInterval = null;
+onMounted(() => {
+    syncInterval = setInterval(() => {
+        router.reload({ only: ['purchaseRequests'], preserveState: true, preserveScroll: true });
+    }, 5000);
+});
+onUnmounted(() => {
+    clearInterval(syncInterval);
+});
 
 // --- Modal Form Logic ---
 const showCreateModal = ref(false);
@@ -85,7 +97,32 @@ const formatPRNumber = (pr) => {
 };
 
 const canEdit = (status) => {
-    return status === 'draft' || status.includes('pending') || status === 'approved';
+    return status === 'draft' || status === 'pending_approval' || status === 'pending_factory_approval';
+};
+
+const showRejectReasonModal = ref(false);
+const activeRejectReason = ref('');
+
+const viewRejectReason = (reason) => {
+    activeRejectReason.value = reason || 'No reason provided.';
+    showRejectReasonModal.value = true;
+};
+
+const generatePo = (pr) => {
+    router.post(route(`${props.routePrefix}.purchase-requests.generate-po`, pr.id), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Success handled by flash
+        }
+    });
+};
+
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    expandedRows.value = newSet;
 };
 </script>
 
@@ -154,61 +191,100 @@ const canEdit = (status) => {
             <!-- Table -->
             <div class="glass-card overflow-hidden !p-0">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm text-slate-600">
-                        <thead>
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group">
                             <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                                 <th class="py-4 px-4 font-bold">Request No.</th>
-                                <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
+                                <th class="py-4 px-4 font-bold items-center gap-1 cursor-pointer hidden lg:table-cell">
                                     Date Requested
-                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <svg class="w-3 h-3 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                 </th>
                                 <th class="py-4 px-4 font-bold">Supplier</th>
-                                <th class="py-4 px-4 font-bold">Requested By</th>
+                                <th class="py-4 px-4 font-bold hidden lg:table-cell">Requested By</th>
                                 <th class="py-4 px-4 font-bold">Status</th>
                                 <th class="py-4 px-4 font-bold text-center">Total Items</th>
-                                <th class="py-4 px-4 font-bold text-right">Est. Total (₱)</th>
-                                <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
+                                <th class="py-4 px-4 font-bold text-right hidden md:table-cell">Est. Total (₱)</th>
+                                <th class="py-4 px-4 font-bold items-center gap-1 cursor-pointer hidden lg:table-cell">
                                     Need By Date
-                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <svg class="w-3 h-3 text-slate-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                 </th>
                                 <th class="py-4 px-4 font-bold text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr v-for="pr in purchaseRequests.data" :key="pr.id" class="transition-colors hover:bg-slate-50/50">
-                                <td class="py-3 px-4 font-bold text-slate-900 whitespace-nowrap">{{ formatPRNumber(pr) }}</td>
-                                <td class="py-3 px-4 whitespace-nowrap">{{ pr.created_at }}</td>
-                                <td class="py-3 px-4">
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100 bg-white">
+                            <tr v-for="pr in purchaseRequests.data" :key="pr.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-4 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0 min-w-[200px]">
+                                    <span class="font-bold text-slate-900 whitespace-nowrap">{{ formatPRNumber(pr) }}</span>
+                                    <button @click="toggleRow(pr.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(pr.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(pr.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Date Requested</span>
+                                    <span class="whitespace-nowrap">{{ pr.created_at }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(pr.id), 'flex md:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Supplier</span>
                                     <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">{{ pr.supplier.name.charAt(0) }}</div>
+                                        <div class="w-6 h-6 rounded-full bg-slate-200 hidden md:flex items-center justify-center text-xs font-bold text-slate-600">{{ pr.supplier.name.charAt(0) }}</div>
                                         <span class="font-medium text-slate-700">{{ pr.supplier.name }}</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 font-medium text-slate-700">{{ pr.requester }}</td>
-                                <td class="py-3 px-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold ring-1 ring-inset ring-black/5" :class="getStatusBadge(pr.status)">
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(pr.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Requested By</span>
+                                    <span class="font-medium text-slate-700">{{ pr.requester }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(pr.id), 'flex md:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
+                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold ring-1 ring-inset ring-black/5 whitespace-nowrap" :class="getStatusBadge(pr.status)">
                                         {{ pr.status_label }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-4 text-center font-bold text-slate-700">{{ pr.quantity_requested }}</td>
-                                <td class="py-3 px-4 text-right font-bold text-slate-900">₱{{ Number(pr.total_cost).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</td>
-                                <td class="py-3 px-4 font-medium text-slate-600">{{ pr.expected_delivery_date || '—' }}</td>
-                                <td class="py-3 px-4">
-                                    <div class="flex justify-center items-center gap-1">
-                                        <button class="p-1.5 text-slate-400 hover:text-indigo-600 transition-colors rounded hover:bg-slate-100" title="View Details">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                        </button>
-                                        <button :disabled="!canEdit(pr.status)" :class="canEdit(pr.status) ? 'text-slate-400 hover:text-indigo-600 hover:bg-slate-100' : 'text-slate-200 cursor-not-allowed'" class="p-1.5 transition-colors rounded" title="Edit">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>
-                                        </button>
-                                        <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors rounded hover:bg-slate-100" title="More options">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v.01M12 12v.01M12 18v.01" /></svg>
-                                        </button>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(pr.id), 'flex md:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Total Items</span>
+                                    <span class="font-bold text-slate-700">{{ pr.quantity_requested }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(pr.id), 'flex md:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Est. Total</span>
+                                    <span class="font-bold text-slate-900">₱{{ Number(pr.total_cost).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(pr.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Need By Date</span>
+                                    <span class="font-medium text-slate-600">{{ pr.expected_delivery_date || '—' }}</span>
+                                </td>
+                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(pr.id), 'flex md:table-cell justify-between items-center': expandedRows.has(pr.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Action</span>
+                                    <div class="flex justify-end md:justify-center items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink as="button" @click="() => {}">
+                                                    View Details
+                                                </DropdownLink>
+                                                <DropdownLink v-if="canEdit(pr.status)" as="button" @click="() => {}">
+                                                    Edit
+                                                </DropdownLink>
+                                                
+                                                <div v-if="pr.status === 'approved' || pr.status === 'rejected'">
+                                                    <div class="border-t border-slate-100 my-1"></div>
+                                                    <DropdownLink v-if="pr.status === 'approved'" as="button" @click="generatePo(pr)" class="!text-emerald-600">
+                                                        Generate PO
+                                                    </DropdownLink>
+                                                    <DropdownLink v-if="pr.status === 'rejected'" as="button" @click="viewRejectReason(pr.reject_reason)" class="!text-red-600">
+                                                        View Reason
+                                                    </DropdownLink>
+                                                </div>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!purchaseRequests.data || !purchaseRequests.data.length">
-                                <td colspan="9" class="py-12 text-center text-slate-500">No purchase requests found.</td>
+                            <tr v-if="!purchaseRequests.data || !purchaseRequests.data.length" class="block md:table-row">
+                                <td colspan="9" class="py-12 text-center text-slate-500 block md:table-cell">No purchase requests found.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -290,6 +366,23 @@ const canEdit = (status) => {
                     <button type="button" @click="submit" :disabled="form.processing" class="btn-primary">
                         {{ form.processing ? 'Submitting…' : 'Submit PR' }}
                     </button>
+                </div>
+            </template>
+        </DialogModal>
+
+        <!-- Reject Reason Modal -->
+        <DialogModal :show="showRejectReasonModal" @close="showRejectReasonModal = false" maxWidth="sm">
+            <template #title>
+                <h3 class="text-lg font-bold text-slate-900">Rejection Reason</h3>
+            </template>
+            <template #content>
+                <div class="p-4 bg-red-50 text-red-800 rounded-lg text-sm border border-red-100 mt-2">
+                    {{ activeRejectReason }}
+                </div>
+            </template>
+            <template #footer>
+                <div class="flex items-center justify-end w-full">
+                    <button type="button" @click="showRejectReasonModal = false" class="btn-secondary">Close</button>
                 </div>
             </template>
         </DialogModal>

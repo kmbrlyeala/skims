@@ -2,6 +2,29 @@
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { ref } from 'vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+import DialogModal from '@/Components/DialogModal.vue';
+
+const showViewModal = ref(false);
+const activeItem = ref(null);
+
+const openViewModal = (item) => {
+    activeItem.value = item;
+    showViewModal.value = true;
+};
+
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) {
+        newSet.delete(id);
+    } else {
+        newSet.add(id);
+    }
+    expandedRows.value = newSet;
+};
+
 
 const props = defineProps({
     orders: Object,
@@ -48,28 +71,68 @@ const statusClass = (status) => ({
             <!-- Orders Table -->
             <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="data-table">
-                        <thead>
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th>Order #</th>
-                                <th>Customer</th>
-                                <th>Items</th>
-                                <th>Total</th>
-                                <th>Status</th>
-                                <th>Date</th>
+                                <th class="py-4 px-4 font-bold">Order #</th>
+                                <th class="py-4 px-4 font-bold">Customer</th>
+                                <th class="py-4 px-4 font-bold">Items</th>
+                                <th class="py-4 px-4 font-bold">Total</th>
+                                <th class="py-4 px-4 font-bold">Status</th>
+                                <th class="py-4 px-4 font-bold">Date</th>
+                                <th class="py-4 px-4 font-bold text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr v-for="order in orders.data" :key="order.id">
-                                <td class="font-semibold text-slate-900">#{{ order.id }}</td>
-                                <td>
-                                    <p class="font-medium text-slate-800">{{ order.customer?.name }}</p>
-                                    <p class="text-xs text-slate-400">{{ order.customer?.email }}</p>
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
+                            <tr v-for="order in orders.data" :key="order.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
+                                    <span class="font-semibold text-slate-900">#{{ order.id }}</span>
+                                    <button @click="toggleRow(order.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(order.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
                                 </td>
-                                <td>{{ order.items?.length }} item(s)</td>
-                                <td class="font-semibold text-slate-900">₱{{ Number(order.total).toFixed(2) }}</td>
-                                <td><span class="badge" :class="statusClass(order.status)">{{ order.status }}</span></td>
-                                <td class="text-slate-500">{{ new Date(order.created_at).toLocaleDateString() }}</td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Customer</span>
+                                    <div>
+                                        <p class="font-medium text-slate-800">{{ order.customer?.name }}</p>
+                                        <p class="text-xs text-slate-400">{{ order.customer?.email }}</p>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Items</span>
+                                    <span>{{ order.items?.length }} item(s)</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Total</span>
+                                    <span class="font-semibold text-slate-900">₱{{ Number(order.total).toFixed(2) }}</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
+                                    <span><span class="badge" :class="statusClass(order.status)">{{ order.status }}</span></span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Date</span>
+                                    <span class="text-slate-500">{{ new Date(order.created_at).toLocaleDateString() }}</span>
+                                </td>
+                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(order.id), 'flex md:table-cell justify-between items-center': expandedRows.has(order.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
+                                    <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink as="button" @click="openViewModal(order)">
+                                                    View Details
+                                                </DropdownLink>
+                                            </template>
+                                        </Dropdown>
+                                    </div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -91,5 +154,28 @@ const statusClass = (status) => ({
                 </div>
             </div>
         </div>
+
+        <!-- View Modal -->
+        <DialogModal :show="showViewModal" @close="showViewModal = false" maxWidth="md">
+            <template #title>
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <h3 class="text-lg font-bold text-slate-900">Order Details</h3>
+                    <button @click="showViewModal = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </template>
+            <template #content>
+                <div v-if="activeItem" class="mt-4 space-y-3 text-sm text-slate-600">
+                    <p>Viewing details for Order <strong>#{{ activeItem.id }}</strong>.</p>
+                    <p>Customer: <strong>{{ activeItem.customer?.name || 'N/A' }}</strong></p>
+                    <p>Total: <strong>₱{{ Number(activeItem.total || 0).toFixed(2) }}</strong></p>
+                    <p>Status: <span class="badge" :class="statusClass(activeItem.status)">{{ activeItem.status }}</span></p>
+                </div>
+            </template>
+            <template #footer>
+                <button @click="showViewModal = false" class="btn-secondary">Close</button>
+            </template>
+        </DialogModal>
     </AppLayout>
 </template>

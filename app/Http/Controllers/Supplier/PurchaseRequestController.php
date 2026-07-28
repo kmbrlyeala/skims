@@ -4,80 +4,125 @@ namespace App\Http\Controllers\Supplier;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseRequest;
-use App\Models\Supplier;
+use App\Notifications\PurchaseRequestStatusUpdated;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Inertia\Response;
 
 class PurchaseRequestController extends Controller
 {
-    /**
-     * Display a listing of the PRs for the logged-in supplier.
-     */
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
-        $user = $request->user();
-        
-        // Ensure the supplier user is properly linked to a factory
-        if (!$user->supplier_id) {
-            return Inertia::render('Supplier/PurchaseRequests/Index', [
-                'purchaseRequests' => ['data' => [], 'links' => [], 'meta' => []],
-                'filters'          => $request->only(['status', 'search']),
-                'error'            => 'Your account is not linked to a supplier factory. Please contact an administrator.',
-            ]);
+        $supplierId = $request->user()->supplier_id;
+
+        $query = PurchaseRequest::with(['product', 'requester'])
+            ->where('supplier_id', $supplierId);
+
+        // Filtering
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('product', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%")
+                         ->orWhere('sku', 'like', "%{$search}%");
+                  });
+            });
         }
 
-        $prs = PurchaseRequest::with(['product', 'requester', 'approver', 'purchaseOrder'])
-            ->where('supplier_id', $user->supplier_id)
-            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
-            ->when($request->search, fn ($q, $s) => $q->whereHas('product', fn ($p) => $p->where('name', 'like', "%{$s}%")->orWhere('sku', 'like', "%{$s}%")))
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-        $prs->getCollection()->transform(fn ($pr) => [
-            'id'                    => $pr->id,
-            'product'               => ['id' => $pr->product->id, 'name' => $pr->product->name, 'sku' => $pr->product->sku],
-            'quantity_requested'    => $pr->quantity_requested,
-            'unit_cost'             => $pr->unit_cost,
-            'total_cost'            => $pr->unit_cost * $pr->quantity_requested,
-            'expected_delivery_date' => $pr->expected_delivery_date?->toDateString(),
-            'status'                => $pr->status,
-            'status_label'          => $pr->status_label,
-            'status_color'          => $pr->status_color,
-            'notes'                 => $pr->notes,
-            'requester'             => $pr->requester->name,
-            'po_number'             => $pr->purchaseOrder?->po_number,
-            'created_at'            => $pr->created_at->toDateString(),
-        ]);
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortDir = $request->input('sort_dir', 'desc');
+        
+        $allowedSorts = ['id', 'created_at', 'expected_delivery_date', 'status'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortDir === 'asc' ? 'asc' : 'desc');
+        } else {
+            $query->latest();
+        }
+
+        $requests = $query->paginate(20)->withQueryString();
+
+        $requests->getCollection()->transform(function ($pr) {
+            return [
+                'id' => $pr->id,
+                'request_no' => 'PR-' . date('Y', strtotime($pr->created_at)) . '-' . str_pad($pr->id, 4, '0', STR_PAD_LEFT),
+                'date' => $pr->created_at->format('M d, Y'),
+                'product' => $pr->product->name,
+                'sku' => $pr->product->sku,
+                'qty' => $pr->quantity_requested,
+                'value' => number_format($pr->unit_cost * $pr->quantity_requested, 2),
+                'need_by_date' => $pr->expected_delivery_date ? $pr->expected_delivery_date->format('M d, Y') : null,
+                'status' => $pr->status, // pending_approval, approved, rejected
+                'status_label' => $pr->status_label,
+                'status_color' => $pr->status_color,
+                'requested_by' => $pr->requester->name,
+                'reject_reason' => $pr->reject_reason,
+            ];
+        });
 
         return Inertia::render('Supplier/PurchaseRequests/Index', [
-            'purchaseRequests' => $prs,
-            'filters'          => $request->only(['status', 'search']),
+            'requests' => $requests,
+            'filters' => $request->only(['search', 'status', 'start_date', 'end_date', 'sort_by', 'sort_dir']),
         ]);
     }
 
-    /**
-     * Factory approves the PR and provides ETA.
-     */
-    public function approve(Request $request, PurchaseRequest $purchaseRequest, \App\Actions\PurchaseRequest\FactoryApprovePurchaseRequest $action)
+    public function approve(Request $request, PurchaseRequest $purchaseRequest)
     {
-        $user = $request->user();
-
-        if ($purchaseRequest->supplier_id !== $user->supplier_id) {
-            abort(403, 'Unauthorized action.');
+        // Ensure it belongs to supplier
+        if ($purchaseRequest->supplier_id !== $request->user()->supplier_id) {
+            abort(403);
         }
 
-        if ($purchaseRequest->status !== 'pending_factory_approval') {
-            return back()->with('error', 'This PR is not pending factory approval.');
+        if (!in_array($purchaseRequest->status, ['pending_approval', 'pending_factory_approval'])) {
+            return redirect()->back()->with('error', 'Request is not pending.');
         }
 
-        $validated = $request->validate([
-            'expected_delivery_date' => 'required|date|after_or_equal:today',
+        $purchaseRequest->status = 'approved';
+        $purchaseRequest->approved_by = $request->user()->id; 
+        $purchaseRequest->approved_at = now();
+        $purchaseRequest->save();
+
+        if ($purchaseRequest->requester) {
+            $purchaseRequest->requester->notify(new PurchaseRequestStatusUpdated($purchaseRequest, 'approved'));
+        }
+
+        return redirect()->back()->with('success', 'Purchase Request approved.');
+    }
+
+    public function reject(Request $request, PurchaseRequest $purchaseRequest)
+    {
+        if ($purchaseRequest->supplier_id !== $request->user()->supplier_id) {
+            abort(403);
+        }
+
+        if (!in_array($purchaseRequest->status, ['pending_approval', 'pending_factory_approval'])) {
+            return redirect()->back()->with('error', 'Request is not pending.');
+        }
+
+        $request->validate([
+            'reject_reason' => 'required|string|max:1000'
         ]);
 
-        $action->handle($purchaseRequest, $validated['expected_delivery_date']);
+        $purchaseRequest->status = 'rejected';
+        $purchaseRequest->reject_reason = $request->reject_reason;
+        $purchaseRequest->save();
 
-        return back()->with('success', 'Purchase Request approved. Purchase Order has been generated.');
+        if ($purchaseRequest->requester) {
+            $purchaseRequest->requester->notify(new PurchaseRequestStatusUpdated($purchaseRequest, 'rejected', $request->reject_reason));
+        }
+
+        return redirect()->back()->with('success', 'Purchase Request rejected.');
     }
 }

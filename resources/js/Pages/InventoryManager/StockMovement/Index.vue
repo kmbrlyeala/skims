@@ -118,10 +118,9 @@ const exportData = () => {
                 <div class="p-4 border-b border-slate-100 bg-white md:bg-transparent rounded-xl md:rounded-none shadow-sm md:shadow-none mb-4 md:mb-0">
                     <h2 class="text-sm font-bold text-slate-900">Stock Movement List</h2>
                 </div>
-                <div class="overflow-x-auto min-w-full">
-                    <table class="w-full text-left text-sm text-slate-600 block md:table">
-                        <thead class="hidden md:table-header-group">
-                            <tr class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <div class="overflow-x-auto min-w-full rounded-b-xl relative">
+                    <table class="w-full min-w-[1200px] text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 sticky top-0 z-20">
                                 <th class="py-4 px-4 font-bold flex items-center gap-1 cursor-pointer">
                                     Date & Time
                                     <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
@@ -138,68 +137,53 @@ const exportData = () => {
                                 <th class="py-4 px-4 font-bold text-center">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
-                            <tr v-for="movement in transactions.data" :key="movement.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
-                                <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0 whitespace-nowrap">
-                                    <div class="flex flex-col">
-                                        <span class="font-medium text-slate-900">{{ movement.date }}</span>
-                                    </div>
-                                    <button @click="toggleRow(movement.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
-                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(movement.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                    </button>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr v-for="movement in transactions.data" :key="movement.id" class="bg-white transition-colors hover:bg-slate-50/50">
+                                <td class="py-3 px-4 whitespace-nowrap sticky left-0 bg-inherit z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)]">
+                                    <span class="font-medium text-slate-900">{{ movement.date }}</span>
                                 </td>
-                                <td class="py-3 px-4 flex md:table-cell justify-between items-center border-b border-slate-50 md:border-0 min-w-[220px]">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Product</span>
+                                <td class="py-3 px-4 whitespace-nowrap min-w-[220px]">
                                     <div class="flex items-center gap-3">
-                                        <div class="flex flex-col text-right md:text-left">
+                                        <div class="flex flex-col">
                                             <span class="font-bold text-slate-900">{{ movement.product_name }}</span>
                                             <span class="text-xs text-slate-400 mt-0.5">{{ movement.product_category }}</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">SKU</span>
-                                    <span class="font-medium text-slate-700 whitespace-nowrap">{{ movement.sku }}</span>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <span class="font-medium text-slate-700">{{ movement.sku }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Type</span>
-                                    <span class="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-bold whitespace-nowrap uppercase" :class="getTypeStyles(movement.type)">
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-bold uppercase" :class="getTypeStyles(movement.type)">
                                         {{ movement.type.replace('_', ' ') }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Ref No.</span>
+                                <td class="py-3 px-4 whitespace-nowrap">
                                     <span class="font-medium text-slate-700">{{ movement.reference_no }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Location</span>
-                                    <span class="text-slate-700 whitespace-nowrap">{{ movement.location }}</span>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <span class="text-slate-700">{{ movement.location }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">In Qty</span>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <span class="font-bold text-green-600">{{ movement.in_qty || '-' }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Out Qty</span>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <span class="font-bold text-red-600">{{ movement.out_qty || '-' }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Balance</span>
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
                                     <span class="font-bold text-slate-900">{{ movement.balance }}</span>
                                 </td>
-                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">User</span>
-                                    <div class="flex items-center gap-2 whitespace-nowrap">
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
                                         <span class="text-sm font-medium text-slate-700">{{ movement.user }}</span>
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(movement.id), 'flex md:table-cell justify-between items-center': expandedRows.has(movement.id)}">
-                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Action</span>
-                                    <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="flex justify-center items-center">
                                         <Dropdown align="right" width="48">
                                             <template #trigger>
-                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
-                                                    <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                     </svg>
                                                 </button>
@@ -213,8 +197,8 @@ const exportData = () => {
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-if="!transactions.data || !transactions.data.length" class="block md:table-row">
-                                <td colspan="11" class="py-12 text-center text-slate-500 block md:table-cell">No stock movements found.</td>
+                            <tr v-if="!transactions.data || !transactions.data.length">
+                                <td colspan="11" class="py-12 text-center text-slate-500">No stock movements found.</td>
                             </tr>
                         </tbody>
                     </table>

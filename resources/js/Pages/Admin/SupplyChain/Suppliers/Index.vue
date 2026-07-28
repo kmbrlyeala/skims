@@ -2,6 +2,8 @@
 import { ref, reactive } from 'vue';
 import { Link, router, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 
 defineProps({
     suppliers: Object,
@@ -78,6 +80,14 @@ const filters = reactive({ search: '', platform: '', status: '' });
 const applyFilters = () => {
     router.get(route('admin.suppliers.index'), filters, { preserveState: true, replace: true });
 };
+
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    expandedRows.value = newSet;
+};
 </script>
 
 <template>
@@ -119,20 +129,20 @@ const applyFilters = () => {
 
                 <!-- Table -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table class="min-w-full divide-y divide-gray-100">
-                        <thead class="bg-gray-50">
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Platform</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Platform</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Lead Time</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Products</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            <tr v-if="suppliers.data.length === 0">
-                                <td colspan="6" class="px-6 py-12 text-center">
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-gray-50 bg-white">
+                            <tr v-if="suppliers.data.length === 0" class="block md:table-row">
+                                <td colspan="6" class="px-6 py-12 text-center block md:table-cell">
                                     <div class="mx-auto max-w-sm space-y-3">
                                         <p class="text-sm font-medium text-slate-400">No suppliers found.</p>
                                         <div>
@@ -149,57 +159,65 @@ const applyFilters = () => {
                                     </div>
                                 </td>
                             </tr>
-                            <tr v-for="supplier in suppliers.data" :key="supplier.id" class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4">
-                                    <Link :href="route('admin.suppliers.show', supplier.id)" class="font-medium text-gray-900 hover:text-accent">
-                                        {{ supplier.name }}
-                                    </Link>
-                                    <p v-if="supplier.contact_email" class="text-xs text-gray-400">{{ supplier.contact_email }}</p>
+                            <tr v-for="supplier in suppliers.data" :key="supplier.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-gray-50">
+                                <td class="px-6 py-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0 min-w-[200px]">
+                                    <div>
+                                        <Link :href="route('admin.suppliers.show', supplier.id)" class="font-medium text-gray-900 hover:text-accent">
+                                            {{ supplier.name }}
+                                        </Link>
+                                        <p v-if="supplier.contact_email" class="text-xs text-gray-400">{{ supplier.contact_email }}</p>
+                                    </div>
+                                    <button @click="toggleRow(supplier.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(supplier.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(supplier.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(supplier.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Platform</span>
                                     <span class="px-2.5 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full">
                                         {{ platformLabel(supplier.source_platform) }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ supplier.lead_time_days }} days</td>
-                                <td class="px-6 py-4 text-sm text-gray-700">{{ supplier.products_count ?? supplier.products?.length ?? 0 }}</td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 border-b border-slate-50 md:border-0" :class="{'hidden lg:table-cell': !expandedRows.has(supplier.id), 'flex lg:table-cell justify-between items-center': expandedRows.has(supplier.id)}">
+                                    <span class="lg:hidden text-xs font-bold text-slate-400 uppercase">Lead Time</span>
+                                    <span class="text-sm text-gray-700">{{ supplier.lead_time_days }} days</span>
+                                </td>
+                                <td class="px-6 py-4 border-b border-slate-50 md:border-0 md:text-left" :class="{'hidden md:table-cell': !expandedRows.has(supplier.id), 'flex md:table-cell justify-between items-center': expandedRows.has(supplier.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Products</span>
+                                    <span class="text-sm text-gray-700">{{ supplier.products_count ?? supplier.products?.length ?? 0 }}</span>
+                                </td>
+                                <td class="px-6 py-4 border-b border-slate-50 md:border-0 md:text-left" :class="{'hidden md:table-cell': !expandedRows.has(supplier.id), 'flex md:table-cell justify-between items-center': expandedRows.has(supplier.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
                                     <span class="px-2.5 py-1 text-xs font-medium rounded-full"
                                           :class="supplier.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'">
                                         {{ supplier.is_active ? 'Active' : 'Inactive' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-1.5">
-                                        <Link
-                                            :href="route('admin.suppliers.show', supplier.id)"
-                                            class="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-200 active:scale-95"
-                                        >
-                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            View
-                                        </Link>
-                                        <button
-                                            @click="openEdit(supplier)"
-                                            class="inline-flex items-center gap-1 rounded-lg border border-pink-200/80 bg-pink-50 px-2.5 py-1 text-xs font-semibold text-pink-600 shadow-sm transition-all hover:bg-pink-100 hover:text-pink-700 active:scale-95"
-                                        >
-                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                                            </svg>
-                                            Edit
-                                        </button>
-                                        <button
-                                            v-if="supplier.is_active"
-                                            @click="confirmDeactivate(supplier)"
-                                            class="inline-flex items-center gap-1 rounded-lg border border-rose-200/80 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 shadow-sm transition-all hover:bg-rose-100 hover:text-rose-700 active:scale-95"
-                                        >
-                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                            </svg>
-                                            Deactivate
-                                        </button>
+                                <td class="px-6 py-4 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(supplier.id), 'flex md:table-cell justify-between items-center': expandedRows.has(supplier.id)}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Action</span>
+                                    <div class="flex justify-end md:justify-end items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink :href="route('admin.suppliers.show', supplier.id)">
+                                                    View Supplier
+                                                </DropdownLink>
+                                                <DropdownLink as="button" @click="openEdit(supplier)">
+                                                    Edit Supplier
+                                                </DropdownLink>
+                                                <template v-if="supplier.is_active">
+                                                    <div class="border-t border-slate-100 my-1"></div>
+                                                    <DropdownLink as="button" @click="confirmDeactivate(supplier)" class="!text-rose-600">
+                                                        Deactivate
+                                                    </DropdownLink>
+                                                </template>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>

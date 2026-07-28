@@ -10,6 +10,17 @@ const showDisableModal = ref(false);
 const showEnableModal = ref(false);
 const activeItem = ref(null);
 
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) {
+        newSet.delete(id);
+    } else {
+        newSet.add(id);
+    }
+    expandedRows.value = newSet;
+};
+
 const openViewModal = (item) => {
     activeItem.value = item;
     showViewModal.value = true;
@@ -44,28 +55,43 @@ const openEnableModal = (item) => {
 
             <div class="glass-card">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200 text-sm">
-                        <thead>
+                    <table class="w-full text-left text-sm text-slate-600 block md:table">
+                        <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th class="px-3 py-3.5 text-left font-semibold text-slate-900">Supplier Name</th>
-                                <th class="px-3 py-3.5 text-left font-semibold text-slate-900">Contact Person</th>
-                                <th class="px-3 py-3.5 text-left font-semibold text-slate-900">Email</th>
-                                <th class="px-3 py-3.5 text-left font-semibold text-slate-900">Status</th>
-                                <th class="px-3 py-3.5 text-right font-semibold text-slate-900">Actions</th>
+                                <th class="py-4 px-4 font-bold">Supplier Name</th>
+                                <th class="py-4 px-4 font-bold">Contact Person</th>
+                                <th class="py-4 px-4 font-bold">Email</th>
+                                <th class="py-4 px-4 font-bold">Status</th>
+                                <th class="py-4 px-4 font-bold text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            <tr>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">Cosmetics Corp</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">Jane Doe</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">jane@cosmeticscorp.com</td>
-                                <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Active</span></td>
-                                <td class="whitespace-nowrap px-3 py-4 text-right">
-                                    <div class="flex justify-end items-center">
+                        <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
+                            <tr class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
+                                    <span class="font-bold text-slate-900">Cosmetics Corp</span>
+                                    <button @click="toggleRow('Cosmetics Corp')" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has('Cosmetics Corp') ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Cosmetics Corp'), 'flex md:table-cell justify-between items-center': expandedRows.has('Cosmetics Corp')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Contact Person</span>
+                                    <span class="text-slate-700">Jane Doe</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Cosmetics Corp'), 'flex md:table-cell justify-between items-center': expandedRows.has('Cosmetics Corp')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Email</span>
+                                    <span class="text-slate-700">jane@cosmeticscorp.com</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Cosmetics Corp'), 'flex md:table-cell justify-between items-center': expandedRows.has('Cosmetics Corp')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
+                                    <span class="inline-flex items-center rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">Active</span>
+                                </td>
+                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has('Cosmetics Corp'), 'flex md:table-cell justify-between items-center': expandedRows.has('Cosmetics Corp')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
+                                    <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
                                         <Dropdown align="right" width="48">
                                             <template #trigger>
-                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                     </svg>
                                                 </button>
@@ -86,17 +112,32 @@ const openEnableModal = (item) => {
                                     </div>
                                 </td>
                             </tr>
-                            <tr>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700 font-medium">Skincare Logistics</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">John Smith</td>
-                                <td class="whitespace-nowrap px-3 py-4 text-slate-700">john@skincarelogistics.com</td>
-                                <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">Disabled</span></td>
-                                <td class="whitespace-nowrap px-3 py-4 text-right">
-                                    <div class="flex justify-end items-center">
+                            <tr class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
+                                    <span class="font-bold text-slate-900">Skincare Logistics</span>
+                                    <button @click="toggleRow('Skincare Logistics')" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                        <svg class="w-5 h-5 transition-transform" :class="expandedRows.has('Skincare Logistics') ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                    </button>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Skincare Logistics'), 'flex md:table-cell justify-between items-center': expandedRows.has('Skincare Logistics')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Contact Person</span>
+                                    <span class="text-slate-700">John Smith</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Skincare Logistics'), 'flex md:table-cell justify-between items-center': expandedRows.has('Skincare Logistics')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Email</span>
+                                    <span class="text-slate-700">john@skincarelogistics.com</span>
+                                </td>
+                                <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has('Skincare Logistics'), 'flex md:table-cell justify-between items-center': expandedRows.has('Skincare Logistics')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Status</span>
+                                    <span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">Disabled</span>
+                                </td>
+                                <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has('Skincare Logistics'), 'flex md:table-cell justify-between items-center': expandedRows.has('Skincare Logistics')}">
+                                    <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
+                                    <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
                                         <Dropdown align="right" width="48">
                                             <template #trigger>
-                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                     </svg>
                                                 </button>

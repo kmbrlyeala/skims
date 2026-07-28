@@ -2,6 +2,20 @@
 import { ref } from 'vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+
+const expandedRows = ref(new Set());
+const toggleRow = (id) => {
+    const newSet = new Set(expandedRows.value);
+    if (newSet.has(id)) {
+        newSet.delete(id);
+    } else {
+        newSet.add(id);
+    }
+    expandedRows.value = newSet;
+};
+
 
 const props = defineProps({
     supplier: Object,
@@ -108,29 +122,59 @@ const statusColor = (s) => ({
                             No products linked. <button @click="showLinkModal = true" class="text-accent underline">Link a product.</button>
                         </div>
 
-                        <table v-else class="min-w-full divide-y divide-gray-100">
-                            <thead>
+                        <table v-else class="w-full text-left text-sm text-slate-600 block md:table">
+                            <thead class="hidden md:table-header-group bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
                                 <tr>
-                                    <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase">Product</th>
-                                    <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase">SKU</th>
-                                    <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase">MOQ</th>
-                                    <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase">Unit Cost</th>
-                                    <th class="pb-3 text-left text-xs font-semibold text-gray-500 uppercase">On Hand</th>
-                                    <th class="pb-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                                    <th class="py-4 px-4 font-bold">Product</th>
+                                    <th class="py-4 px-4 font-bold">SKU</th>
+                                    <th class="py-4 px-4 font-bold">MOQ</th>
+                                    <th class="py-4 px-4 font-bold">Unit Cost</th>
+                                    <th class="py-4 px-4 font-bold">On Hand</th>
+                                    <th class="py-4 px-4 font-bold text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <tr v-for="sp in supplier.supplierProducts" :key="sp.id" class="py-3">
-                                    <td class="py-3 text-sm font-medium text-gray-900">{{ sp.product.name }}</td>
-                                    <td class="py-3 text-sm text-gray-500">{{ sp.product.sku }}</td>
-                                    <td class="py-3 text-sm text-gray-900">{{ sp.moq }}</td>
-                                    <td class="py-3 text-sm text-gray-900">₱{{ Number(sp.unit_cost).toLocaleString() }}</td>
-                                    <td class="py-3 text-sm text-gray-900">{{ sp.product.on_hand_qty }}</td>
-                                    <td class="py-3 text-right">
-                                        <button @click="unlinkProduct(sp.product.id)"
-                                                class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition">
-                                            Unlink
+                            <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
+                                <tr v-for="sp in supplier.supplierProducts" :key="sp.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
+                                    <td class="py-3 px-4 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
+                                        <span class="font-medium text-slate-900">{{ sp.product.name }}</span>
+                                        <button @click="toggleRow(sp.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg shrink-0 ml-4">
+                                            <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(sp.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                                         </button>
+                                    </td>
+                                    <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(sp.id), 'flex md:table-cell justify-between items-center': expandedRows.has(sp.id)}">
+                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">SKU</span>
+                                        <span>{{ sp.product.sku }}</span>
+                                    </td>
+                                    <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(sp.id), 'flex md:table-cell justify-between items-center': expandedRows.has(sp.id)}">
+                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">MOQ</span>
+                                        <span>{{ sp.moq }}</span>
+                                    </td>
+                                    <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(sp.id), 'flex md:table-cell justify-between items-center': expandedRows.has(sp.id)}">
+                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Unit Cost</span>
+                                        <span>₱{{ Number(sp.unit_cost).toLocaleString() }}</span>
+                                    </td>
+                                    <td class="py-3 px-4 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(sp.id), 'flex md:table-cell justify-between items-center': expandedRows.has(sp.id)}">
+                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">On Hand</span>
+                                        <span>{{ sp.product.on_hand_qty }}</span>
+                                    </td>
+                                    <td class="py-3 px-4 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(sp.id), 'flex md:table-cell justify-between items-center': expandedRows.has(sp.id)}">
+                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Actions</span>
+                                        <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
+                                            <Dropdown align="right" width="48">
+                                                <template #trigger>
+                                                    <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                        <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                        </svg>
+                                                    </button>
+                                                </template>
+                                                <template #content>
+                                                    <DropdownLink as="button" @click="unlinkProduct(sp.product.id)" class="!text-red-600 hover:!bg-red-50">
+                                                        Unlink
+                                                    </DropdownLink>
+                                                </template>
+                                            </Dropdown>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

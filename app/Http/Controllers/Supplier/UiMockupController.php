@@ -37,4 +37,24 @@ class UiMockupController extends Controller
     {
         return Inertia::render('Supplier/DeliveryHistory/Index');
     }
+
+    public function inventory()
+    {
+        return Inertia::render('Supplier/Inventory/Index');
+    }
+
+    public function invoices()
+    {
+        return Inertia::render('Supplier/Invoices/Index');
+    }
+
+    public function notifications()
+    {
+        return Inertia::render('Supplier/Notifications/Index');
+    }
+
+    public function reports()
+    {
+        return Inertia::render('Supplier/Reports/Index');
+    }
 }

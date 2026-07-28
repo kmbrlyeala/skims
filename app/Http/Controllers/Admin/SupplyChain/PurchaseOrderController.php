@@ -111,6 +111,10 @@ class PurchaseOrderController extends Controller
             'status'               => $po->status,
             'status_label'         => $po->status_label,
             'status_color'         => $po->status_color,
+            'tracking_number'      => $po->tracking_number,
+            'invoice_number'       => $po->invoice_number,
+            'payment_status'       => $po->payment_status,
+            'reject_reason'        => $po->reject_reason,
             'created_at'           => $po->created_at->toDateString(),
         ];
     }

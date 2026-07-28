@@ -397,9 +397,9 @@ const getStatusBadge = (status) => {
                         </Link>
                     </div>
                     
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-600 block md:table">
-                            <thead class="hidden md:table-header-group">
+                    <div class="overflow-x-auto relative rounded-b-xl">
+                        <table class="w-full min-w-[800px] text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-500 font-bold sticky top-0 z-20">
                                 <tr class="bg-slate-50 border-b border-slate-100 text-[10px] uppercase tracking-wider text-slate-500 font-bold">
                                     <th class="py-3 px-5 w-12 text-center">#</th>
                                     <th class="py-3 px-5">Product</th>
@@ -407,14 +407,14 @@ const getStatusBadge = (status) => {
                                     <th class="py-3 px-5 text-right">Current Stock</th>
                                     <th class="py-3 px-5 text-right">Unit Cost</th>
                                     <th class="py-3 px-5 text-right">Total Value (₱)</th>
-                                    <th class="py-3 px-5 text-center">Stock Status</th>
-                                    <th class="py-3 px-5 text-center">Action</th>
+                                    <th class="py-3 px-5 text-center z-20">Stock Status</th>
+                                    <th class="py-3 px-5 text-center sticky right-0 bg-slate-50 z-30 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="block md:table-row-group space-y-4 md:space-y-0 p-4 md:p-0 md:divide-y md:divide-slate-100">
-                                <tr v-for="(item, idx) in data.top_products" :key="item.id" class="flex flex-col md:table-row bg-white rounded-xl shadow-sm border border-slate-200 md:border-0 md:rounded-none md:shadow-none transition-colors hover:bg-slate-50/50">
-                                    <td class="hidden md:table-cell py-3 px-5 text-center text-xs font-bold text-slate-400">{{ idx + 1 }}</td>
-                                    <td class="py-3 px-5 flex justify-between items-center md:table-cell border-b border-slate-100 md:border-0">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr v-for="(item, idx) in data.top_products" :key="item.id" class="bg-white transition-colors hover:bg-slate-50/50">
+                                    <td class="py-3 px-5 text-center text-xs font-bold text-slate-400">{{ idx + 1 }}</td>
+                                    <td class="py-3 px-5 sticky left-0 bg-inherit z-10 shadow-[4px_0_10px_rgba(0,0,0,0.05)]">
                                         <div class="flex items-center gap-3">
                                             <div class="w-8 h-8 bg-slate-100 rounded border border-slate-200 overflow-hidden shrink-0">
                                                 <!-- Mock image placeholder -->
@@ -422,43 +422,34 @@ const getStatusBadge = (status) => {
                                                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                                                 </div>
                                             </div>
-                                            <span class="font-bold text-slate-900">{{ item.name }}</span>
+                                            <span class="font-bold text-slate-900 whitespace-nowrap">{{ item.name }}</span>
                                         </div>
-                                        <button @click="toggleRow(item.id)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 bg-slate-50 rounded-lg">
-                                            <svg class="w-5 h-5 transition-transform" :class="expandedRows.has(item.id) ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                        </button>
                                     </td>
-                                    <td class="py-3 px-5 border-b border-slate-50 md:border-0" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Category</span>
+                                    <td class="py-3 px-5 whitespace-nowrap">
                                         <span class="text-slate-500">{{ item.category }}</span>
                                     </td>
-                                    <td class="py-3 px-5 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Current Stock</span>
+                                    <td class="py-3 px-5 text-right whitespace-nowrap">
                                         <span class="font-bold" :class="item.current_stock > 0 ? 'text-green-600' : 'text-red-600'">
                                             {{ item.current_stock.toLocaleString() }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-5 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Unit Cost</span>
+                                    <td class="py-3 px-5 text-right whitespace-nowrap">
                                         <span class="text-slate-500 font-mono">{{ formatCurrency(item.unit_cost) }}</span>
                                     </td>
-                                    <td class="py-3 px-5 border-b border-slate-50 md:border-0 md:text-right" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Total Value (₱)</span>
+                                    <td class="py-3 px-5 text-right whitespace-nowrap">
                                         <span class="font-black text-slate-900">{{ formatCurrency(item.total_value) }}</span>
                                     </td>
-                                    <td class="py-3 px-5 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Stock Status</span>
+                                    <td class="py-3 px-5 text-center whitespace-nowrap">
                                         <span class="inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ring-1 ring-inset ring-black/5" :class="getStatusBadge(item.status)">
                                             {{ item.status }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-5 md:text-center" :class="{'hidden md:table-cell': !expandedRows.has(item.id), 'flex md:table-cell justify-between items-center': expandedRows.has(item.id)}">
-                                        <span class="md:hidden text-xs font-bold text-slate-400 uppercase">Action</span>
-                                        <div class="flex justify-end md:justify-center items-center w-full md:w-auto">
+                                    <td class="py-3 px-5 text-center sticky right-0 bg-inherit z-10 shadow-[-4px_0_10px_rgba(0,0,0,0.05)]">
+                                        <div class="flex justify-center items-center">
                                             <Dropdown align="right" width="48">
                                                 <template #trigger>
-                                                    <button class="p-2 md:p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
-                                                        <svg class="w-4 h-4 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                                         </svg>
                                                     </button>
@@ -472,8 +463,8 @@ const getStatusBadge = (status) => {
                                         </div>
                                     </td>
                                 </tr>
-                                <tr v-if="!data.top_products?.length" class="block md:table-row">
-                                    <td colspan="8" class="py-12 text-center text-slate-500 block md:table-cell">No products found.</td>
+                                <tr v-if="!data.top_products?.length">
+                                    <td colspan="8" class="py-12 text-center text-slate-500">No products found.</td>
                                 </tr>
                             </tbody>
                         </table>
