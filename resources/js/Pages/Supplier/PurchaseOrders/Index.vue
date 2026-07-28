@@ -13,6 +13,12 @@ const props = defineProps({
 const activeOrder = ref(null);
 const showRejectModal = ref(false);
 const showUpdateModal = ref(false);
+const showViewModal = ref(false);
+
+const openViewModal = (order) => {
+    activeOrder.value = order;
+    showViewModal.value = true;
+};
 
 const expandedRows = ref(new Set());
 const toggleRow = (id) => {
@@ -176,7 +182,7 @@ onUnmounted(() => {
                                                     </DropdownLink>
                                                 </template>
 
-                                                <DropdownLink as="button">
+                                                <DropdownLink as="button" @click="openViewModal(order)">
                                                     View Details
                                                 </DropdownLink>
                                             </template>
@@ -237,6 +243,26 @@ onUnmounted(() => {
                     <button @click="showUpdateModal = false" class="btn-secondary">Cancel</button>
                     <button @click="submitUpdate" class="btn-primary" :disabled="updateForm.processing">Save Changes</button>
                 </div>
+            </template>
+        </DialogModal>
+
+        <!-- View Details Modal -->
+        <DialogModal :show="showViewModal" @close="showViewModal = false" maxWidth="md">
+            <template #title>
+                <h3 class="text-lg font-bold text-slate-900">Order Details</h3>
+            </template>
+            <template #content>
+                <div class="mt-4 text-sm text-slate-600 space-y-2">
+                    <p>Viewing details for <strong>{{ activeOrder?.po_number }}</strong>.</p>
+                    <p>Product: {{ activeOrder?.product }}</p>
+                    <p>Qty: {{ activeOrder?.qty }}</p>
+                    <p>Total Value: ₱{{ activeOrder?.value }}</p>
+                    <p>Date: {{ activeOrder?.date }}</p>
+                    <p>Status: <span class="font-bold capitalize">{{ activeOrder?.status?.replace('_', ' ') }}</span></p>
+                </div>
+            </template>
+            <template #footer>
+                <button @click="showViewModal = false" class="btn-secondary">Close</button>
             </template>
         </DialogModal>
     </AppLayout>

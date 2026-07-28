@@ -11,7 +11,13 @@ const props = defineProps({
 });
 
 const showShipModal = ref(false);
+const showViewModal = ref(false);
 const activeItem = ref(null);
+
+const openViewModal = (item) => {
+    activeItem.value = item;
+    showViewModal.value = true;
+};
 
 const expandedRows = ref(new Set());
 const toggleRow = (id) => {
@@ -121,7 +127,7 @@ onUnmounted(() => {
                                                 <DropdownLink v-if="item.status === 'preparing'" as="button" @click="openShipModal(item)" class="!text-emerald-600 hover:!bg-emerald-50">
                                                     Mark as Shipped
                                                 </DropdownLink>
-                                                <DropdownLink as="button">
+                                                <DropdownLink as="button" @click="openViewModal(item)">
                                                     View Details
                                                 </DropdownLink>
                                                 <DropdownLink as="button" v-if="item.status === 'shipped' || item.status === 'received'">
@@ -161,6 +167,25 @@ onUnmounted(() => {
                     <button @click="showShipModal = false" class="btn-secondary">Cancel</button>
                     <button @click="markShipped" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700" :disabled="!shipForm.tracking_number || shipForm.processing">Confirm Shipment</button>
                 </div>
+            </template>
+        </DialogModal>
+
+        <!-- View Details Modal -->
+        <DialogModal :show="showViewModal" @close="showViewModal = false" maxWidth="md">
+            <template #title>
+                <h3 class="text-lg font-bold text-slate-900">Delivery Details</h3>
+            </template>
+            <template #content>
+                <div class="mt-4 text-sm text-slate-600 space-y-2">
+                    <p>Viewing details for Delivery <strong>{{ activeItem?.id }}</strong>.</p>
+                    <p>PO Number: {{ activeItem?.po }}</p>
+                    <p>Date: {{ activeItem?.date }}</p>
+                    <p>Tracking Ref: {{ activeItem?.tracking || '-' }}</p>
+                    <p>Status: <span class="font-bold capitalize">{{ activeItem?.status?.replace('_', ' ') }}</span></p>
+                </div>
+            </template>
+            <template #footer>
+                <button @click="showViewModal = false" class="btn-secondary">Close</button>
             </template>
         </DialogModal>
     </AppLayout>
