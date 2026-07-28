@@ -17,6 +17,7 @@ class Product extends Model
         'sku',
         'name',
         'description',
+        'category_id',
         'price',
         'photos',
         'is_active',
@@ -34,6 +35,21 @@ class Product extends Model
     public function inventory(): HasOne
     {
         return $this->hasOne(Inventory::class);
+    }
+
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function inventoryBatches(): HasMany
+    {
+        return $this->hasMany(InventoryBatch::class);
+    }
+
+    public function inventoryTransactions(): HasMany
+    {
+        return $this->hasMany(InventoryTransaction::class);
     }
 
     public function supplierProducts(): HasMany

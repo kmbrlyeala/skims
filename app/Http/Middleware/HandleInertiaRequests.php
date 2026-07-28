@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             'cartCount' => $user && $user->role === 'customer'
                 ? (int) $user->cartItems()->sum('quantity')
                 : 0,
+            'notifications' => $user ? $user->unreadNotifications()->take(5)->get() : [],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error'   => $request->session()->get('error'),

@@ -22,8 +22,22 @@ class PurchaseOrderController extends Controller
 
         $pos->getCollection()->transform(fn ($po) => $this->formatPo($po));
 
-        return Inertia::render('Admin/SupplyChain/PurchaseOrders/Index', [
+        // Summary widgets stats
+        $stats = [
+            'total' => PurchaseOrder::count(),
+            'pending' => PurchaseOrder::where('status', 'ordered')->count(),
+            'partially_received' => PurchaseOrder::where('status', 'partially_received')->count(),
+            'completed' => PurchaseOrder::where('status', 'received')->count(),
+            'cancelled' => PurchaseOrder::where('status', 'cancelled')->count(),
+        ];
+
+        $view = $request->user()->hasRole('admin') 
+            ? 'Admin/SupplyChain/PurchaseOrders/Index' 
+            : 'InventoryManager/PurchaseOrders/Index';
+
+        return Inertia::render($view, [
             'purchaseOrders' => $pos,
+            'stats'          => $stats,
             'filters'        => $request->only(['status', 'search']),
             'routePrefix'    => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
@@ -69,7 +83,7 @@ class PurchaseOrderController extends Controller
                     'notes'             => $gr->notes,
                 ]),
             ],
-            'routePrefix' => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
+            'routePrefix' => request()->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
         ]);
     }
 
@@ -79,11 +93,15 @@ class PurchaseOrderController extends Controller
         return [
             'id'                   => $po->id,
             'po_number'            => $po->po_number,
+            'pr_id'                => $pr->id,
+            'pr_created_at'        => $pr->created_at->toDateString(),
             'product_name'         => $pr->product->name,
             'product_sku'          => $pr->product->sku,
             'product_on_hand'      => $pr->product->inventory?->on_hand_qty ?? 0,
             'product_incoming'     => $pr->product->inventory?->incoming_qty ?? 0,
             'supplier_name'        => $pr->supplier->name,
+            'supplier_contact'     => $pr->supplier->phone ?? '(02) 8123 4567',
+            'supplier_initial'     => substr($pr->supplier->name, 0, 1),
             'quantity_ordered'     => $po->quantity_ordered,
             'total_received'       => $po->total_received_qty,
             'remaining_qty'        => $po->remaining_qty,

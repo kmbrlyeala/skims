@@ -47,14 +47,42 @@ class ProcessGoodsReceipt
 
             // 2. Update inventory — net received (excluding damaged units)
             $pr = $purchaseOrder->purchaseRequest;
+            $product_id = $pr->product_id;
+
+            // Find or create batch
+            $batch = \App\Models\InventoryBatch::firstOrCreate(
+                [
+                    'product_id' => $product_id,
+                    'batch_number' => $data['batch_number'] ?? null,
+                ],
+                [
+                    'expiration_date' => $data['expiration_date'] ?? null,
+                    'quantity' => 0
+                ]
+            );
+
+            if ($netReceived > 0) {
+                $batch->increment('quantity', $netReceived);
+
+                \App\Models\InventoryTransaction::create([
+                    'product_id' => $product_id,
+                    'inventory_batch_id' => $batch->id,
+                    'user_id' => Auth::id(),
+                    'type' => 'receive',
+                    'quantity' => $netReceived,
+                    'reference_id' => $receipt->id,
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            }
+
             $inventory = Inventory::firstOrCreate(
-                ['product_id' => $pr->product_id],
+                ['product_id' => $product_id],
                 ['on_hand_qty' => 0, 'incoming_qty' => 0, 'reorder_point' => 0]
             );
-            $inventory->incrementStock($netReceived);
-
-            // Note: B2C Storefront stock is automatically handled since Product live_stock 
-            // directly calculates from the Inventory table updated above.
+            $inventory->incoming_qty = max(0, $inventory->incoming_qty - $netReceived);
+            $inventory->on_hand_qty = \App\Models\InventoryBatch::where('product_id', $product_id)->sum('quantity');
+            $inventory->last_updated_at = now();
+            $inventory->save();
 
             // 3. Determine new PO status
             $totalReceived = $purchaseOrder->goodsReceipts()->sum('quantity_received');

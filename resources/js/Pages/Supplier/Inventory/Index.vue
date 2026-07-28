@@ -2,13 +2,17 @@
 import { ref, reactive } from 'vue';
 import { useForm, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import DialogModal from '@/Components/DialogModal.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 
 const props = defineProps({
     items: Array,
 });
 
 const showForm = ref(false);
-const editingItem = ref(null);
+const showDeleteModal = ref(false);
+const activeItem = ref(null);
 
 const form = useForm({
     name: '',
@@ -22,18 +26,18 @@ const form = useForm({
 
 const resetForm = () => {
     form.reset();
-    editingItem.value = null;
+    activeItem.value = null;
     showForm.value = false;
 };
 
 const openCreate = () => {
     form.reset();
-    editingItem.value = null;
+    activeItem.value = null;
     showForm.value = true;
 };
 
 const openEdit = (item) => {
-    editingItem.value = item;
+    activeItem.value = item;
     form.name = item.name;
     form.description = item.description || '';
     form.image_url = item.image_url || '';
@@ -45,8 +49,8 @@ const openEdit = (item) => {
 };
 
 const submit = () => {
-    if (editingItem.value) {
-        form.put(route('supplier.inventory.update', editingItem.value.id), {
+    if (activeItem.value) {
+        form.put(route('supplier.inventory.update', activeItem.value.id), {
             onSuccess: () => resetForm(),
         });
     } else {
@@ -56,9 +60,19 @@ const submit = () => {
     }
 };
 
-const deleteItem = (item) => {
-    if (confirm(`Delete "₱{item.name}"?`)) {
-        router.delete(route('supplier.inventory.destroy', item.id));
+const openDelete = (item) => {
+    activeItem.value = item;
+    showDeleteModal.value = true;
+};
+
+const deleteItem = () => {
+    if (activeItem.value) {
+        router.delete(route('supplier.inventory.destroy', activeItem.value.id), {
+            onSuccess: () => {
+                showDeleteModal.value = false;
+                activeItem.value = null;
+            }
+        });
     }
 };
 
@@ -107,68 +121,84 @@ const inventoryStats = reactive({
             </div>
 
             <!-- Form Modal -->
-            <Transition
-                enter-active-class="transition duration-200 ease-out"
-                enter-from-class="opacity-0"
-                enter-to-class="opacity-100"
-                leave-active-class="transition duration-150 ease-in"
-                leave-from-class="opacity-100"
-                leave-to-class="opacity-0"
-            >
-                <div v-if="showForm" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
-                    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <DialogModal :show="showForm" @close="resetForm" maxWidth="lg">
+                <template #title>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <h3 class="text-lg font-bold text-slate-900">
-                            {{ editingItem ? 'Edit Product' : 'Add New Product' }}
+                            {{ activeItem ? 'Edit Product' : 'Add New Product' }}
                         </h3>
-                        <form @submit.prevent="submit" class="mt-5 space-y-4">
-                            <div>
-                                <label class="form-label">Name</label>
-                                <input v-model="form.name" class="form-input" required />
-                                <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
-                            </div>
-                            <div>
-                                <label class="form-label">Description</label>
-                                <textarea v-model="form.description" class="form-input" rows="2" />
-                                <p v-if="form.errors.description" class="mt-1 text-xs text-red-600">{{ form.errors.description }}</p>
-                            </div>
-                            <div>
-                                <label class="form-label">Image URL</label>
-                                <input v-model="form.image_url" type="url" class="form-input" placeholder="https://..." />
-                                <p v-if="form.errors.image_url" class="mt-1 text-xs text-red-600">{{ form.errors.image_url }}</p>
-                            </div>
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div>
-                                    <label class="form-label">SKU</label>
-                                    <input v-model="form.sku" class="form-input" required />
-                                    <p v-if="form.errors.sku" class="mt-1 text-xs text-red-600">{{ form.errors.sku }}</p>
-                                </div>
-                                <div>
-                                    <label class="form-label">Status</label>
-                                    <select v-model="form.status" class="form-select">
-                                        <option value="draft">Draft</option>
-                                        <option value="active">Active</option>
-                                        <option value="hidden">Hidden</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="form-label">Stock</label>
-                                    <input v-model.number="form.stock" type="number" min="0" class="form-input" />
-                                </div>
-                                <div>
-                                    <label class="form-label">Price (₱)</label>
-                                    <input v-model.number="form.price" type="number" min="0" step="0.01" class="form-input" />
-                                </div>
-                            </div>
-                            <div class="flex justify-end gap-2 pt-2">
-                                <button type="button" @click="resetForm" class="btn-secondary">Cancel</button>
-                                <button type="submit" :disabled="form.processing" class="btn-primary">
-                                    {{ editingItem ? 'Update' : 'Create' }}
-                                </button>
-                            </div>
-                        </form>
+                        <button @click="resetForm" class="text-slate-400 hover:text-slate-600 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
                     </div>
-                </div>
-            </Transition>
+                </template>
+                <template #content>
+                    <form @submit.prevent="submit" class="mt-2 space-y-4">
+                        <div>
+                            <label class="form-label">Name</label>
+                            <input v-model="form.name" class="form-input" required />
+                            <p v-if="form.errors.name" class="mt-1 text-xs text-red-600">{{ form.errors.name }}</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Description</label>
+                            <textarea v-model="form.description" class="form-input" rows="2" />
+                            <p v-if="form.errors.description" class="mt-1 text-xs text-red-600">{{ form.errors.description }}</p>
+                        </div>
+                        <div>
+                            <label class="form-label">Image URL</label>
+                            <input v-model="form.image_url" type="url" class="form-input" placeholder="https://..." />
+                            <p v-if="form.errors.image_url" class="mt-1 text-xs text-red-600">{{ form.errors.image_url }}</p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="form-label">SKU</label>
+                                <input v-model="form.sku" class="form-input" required />
+                                <p v-if="form.errors.sku" class="mt-1 text-xs text-red-600">{{ form.errors.sku }}</p>
+                            </div>
+                            <div>
+                                <label class="form-label">Status</label>
+                                <select v-model="form.status" class="form-select">
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="form-label">Stock</label>
+                                <input v-model.number="form.stock" type="number" min="0" class="form-input" />
+                            </div>
+                            <div>
+                                <label class="form-label">Price (₱)</label>
+                                <input v-model.number="form.price" type="number" min="0" step="0.01" class="form-input" />
+                            </div>
+                        </div>
+                    </form>
+                </template>
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3 w-full">
+                        <button type="button" @click="resetForm" class="btn-secondary">Cancel</button>
+                        <button type="button" @click="submit" :disabled="form.processing" class="btn-primary">
+                            {{ activeItem ? 'Update' : 'Create' }}
+                        </button>
+                    </div>
+                </template>
+            </DialogModal>
+
+            <!-- Delete Confirmation Modal -->
+            <DialogModal :show="showDeleteModal" @close="showDeleteModal = false" maxWidth="sm">
+                <template #title>
+                    <h3 class="text-lg font-bold text-slate-900">Confirm Deletion</h3>
+                </template>
+                <template #content>
+                    <p class="text-sm text-slate-600">Are you sure you want to delete <span class="font-bold">{{ activeItem?.name }}</span>? This action cannot be undone.</p>
+                </template>
+                <template #footer>
+                    <div class="flex items-center justify-end gap-3 w-full">
+                        <button type="button" @click="showDeleteModal = false" class="btn-secondary">Cancel</button>
+                        <button type="button" @click="deleteItem" class="btn-primary !bg-red-600 hover:!bg-red-700">Delete</button>
+                    </div>
+                </template>
+            </DialogModal>
 
             <!-- Products Table -->
             <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -203,9 +233,25 @@ const inventoryStats = reactive({
                                 <td class="font-semibold">₱{{ Number(item.price).toFixed(2) }}</td>
                                 <td><span class="badge" :class="statusClass(item.status)">{{ item.status }}</span></td>
                                 <td class="text-right">
-                                    <div class="flex justify-end gap-1">
-                                        <button @click="openEdit(item)" class="btn-secondary btn-sm">Edit</button>
-                                        <button @click="deleteItem(item)" class="btn-danger btn-sm">Delete</button>
+                                    <div class="flex justify-end items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink as="button" @click="openEdit(item)">
+                                                    Edit Product
+                                                </DropdownLink>
+                                                <div class="border-t border-slate-100"></div>
+                                                <DropdownLink as="button" @click="openDelete(item)" class="!text-red-600 hover:!bg-red-50">
+                                                    Delete
+                                                </DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>

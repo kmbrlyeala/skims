@@ -1,8 +1,23 @@
-<script setup>
 import { ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DialogModal from '@/Components/DialogModal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+
+const showAcceptModal = ref(false);
+const showRejectModal = ref(false);
+const activeItem = ref(null);
+
+const openAcceptModal = (item) => {
+    activeItem.value = item;
+    showAcceptModal.value = true;
+};
+
+const openRejectModal = (item) => {
+    activeItem.value = item;
+    showRejectModal.value = true;
+};
 
 const isTrackingModalOpen = ref(false);
 const activeTrackingPR = ref(null);
@@ -48,9 +63,25 @@ const closeTrackingModal = () => {
                                 <td class="whitespace-nowrap px-3 py-4 text-slate-700">Inventory Manager</td>
                                 <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">Pending</span></td>
                                 <td class="whitespace-nowrap px-3 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <button class="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-100">Accept</button>
-                                        <button class="rounded bg-red-50 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-100">Reject</button>
+                                    <div class="flex justify-end items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink as="button" @click="openAcceptModal('PR-0012')" class="!text-emerald-600 hover:!bg-emerald-50">
+                                                    Accept
+                                                </DropdownLink>
+                                                <div class="border-t border-slate-100"></div>
+                                                <DropdownLink as="button" @click="openRejectModal('PR-0012')" class="!text-red-600 hover:!bg-red-50">
+                                                    Reject
+                                                </DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>
@@ -63,9 +94,25 @@ const closeTrackingModal = () => {
                                 <td class="whitespace-nowrap px-3 py-4 text-slate-700">Inventory Manager</td>
                                 <td class="whitespace-nowrap px-3 py-4"><span class="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20">Pending</span></td>
                                 <td class="whitespace-nowrap px-3 py-4 text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <button class="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-100">Accept</button>
-                                        <button class="rounded bg-red-50 px-2 py-1 text-xs font-semibold text-red-600 hover:bg-red-100">Reject</button>
+                                    <div class="flex justify-end items-center">
+                                        <Dropdown align="right" width="48">
+                                            <template #trigger>
+                                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                    </svg>
+                                                </button>
+                                            </template>
+                                            <template #content>
+                                                <DropdownLink as="button" @click="openAcceptModal('PR-0013')" class="!text-emerald-600 hover:!bg-emerald-50">
+                                                    Accept
+                                                </DropdownLink>
+                                                <div class="border-t border-slate-100"></div>
+                                                <DropdownLink as="button" @click="openRejectModal('PR-0013')" class="!text-red-600 hover:!bg-red-50">
+                                                    Reject
+                                                </DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </div>
                                 </td>
                             </tr>
@@ -159,6 +206,37 @@ const closeTrackingModal = () => {
             </template>
             <template #footer>
                 <SecondaryButton @click="closeTrackingModal">Close</SecondaryButton>
+            </template>
+        </DialogModal>
+        <!-- Accept Modal -->
+        <DialogModal :show="showAcceptModal" @close="showAcceptModal = false" maxWidth="sm">
+            <template #title>
+                <h3 class="text-lg font-bold text-slate-900">Confirm Accept</h3>
+            </template>
+            <template #content>
+                <p class="text-sm text-slate-600">Are you sure you want to accept <span class="font-bold">{{ activeItem }}</span>?</p>
+            </template>
+            <template #footer>
+                <div class="flex items-center justify-end gap-3 w-full">
+                    <button @click="showAcceptModal = false" class="btn-secondary">Cancel</button>
+                    <button @click="showAcceptModal = false" class="btn-primary !bg-emerald-600 hover:!bg-emerald-700">Accept</button>
+                </div>
+            </template>
+        </DialogModal>
+
+        <!-- Reject Modal -->
+        <DialogModal :show="showRejectModal" @close="showRejectModal = false" maxWidth="sm">
+            <template #title>
+                <h3 class="text-lg font-bold text-slate-900">Confirm Reject</h3>
+            </template>
+            <template #content>
+                <p class="text-sm text-slate-600">Are you sure you want to reject <span class="font-bold">{{ activeItem }}</span>?</p>
+            </template>
+            <template #footer>
+                <div class="flex items-center justify-end gap-3 w-full">
+                    <button @click="showRejectModal = false" class="btn-secondary">Cancel</button>
+                    <button @click="showRejectModal = false" class="btn-primary !bg-red-600 hover:!bg-red-700">Reject</button>
+                </div>
             </template>
         </DialogModal>
     </AppLayout>

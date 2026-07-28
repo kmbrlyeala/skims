@@ -26,11 +26,32 @@ class PurchaseRequestController extends Controller
 
         $prs->getCollection()->transform(fn ($pr) => $this->formatPr($pr));
 
-        return Inertia::render('Admin/SupplyChain/PurchaseRequests/Index', [
+        $products  = Product::active()->with('suppliers')->get(['id', 'name', 'sku']);
+        $suppliers = Supplier::active()->get(['id', 'name', 'lead_time_days', 'source_platform']);
+
+        $view = $request->user()->hasRole('admin') 
+            ? 'Admin/SupplyChain/PurchaseRequests/Index' 
+            : 'InventoryManager/PurchaseRequests/Index';
+
+        return Inertia::render($view, [
             'purchaseRequests' => $prs,
             'filters'          => $request->only(['status', 'search']),
             'isManager'        => $request->user()->hasRole('admin'),
             'routePrefix'      => $request->user()->hasRole('admin') ? 'admin' : 'inventory-manager',
+            'products'         => $products->map(fn ($p) => [
+                'id'   => $p->id,
+                'name' => $p->name,
+                'sku'  => $p->sku,
+                'suppliers' => $p->suppliers->map(fn ($s) => [
+                    'id'       => $s->id,
+                    'name'     => $s->name,
+                    'moq'      => $s->pivot->moq,
+                    'unit_cost' => $s->pivot->unit_cost,
+                    'lead_time_days' => $s->lead_time_days,
+                ]),
+            ]),
+            'suppliers'        => $suppliers,
+            'prefill'          => null, // Optional if we want to support prefilling the modal later
         ]);
     }
 

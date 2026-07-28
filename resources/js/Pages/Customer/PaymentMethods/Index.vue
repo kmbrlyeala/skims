@@ -2,6 +2,29 @@
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import DialogModal from '@/Components/DialogModal.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+
+const showEditModal = ref(false);
+const showRemoveModal = ref(false);
+const showDisconnectModal = ref(false);
+const activeItem = ref(null);
+
+const openEditModal = (item) => {
+    activeItem.value = item;
+    showEditModal.value = true;
+};
+
+const openRemoveModal = (item) => {
+    activeItem.value = item;
+    showRemoveModal.value = true;
+};
+
+const openDisconnectModal = (item) => {
+    activeItem.value = item;
+    showDisconnectModal.value = true;
+};
 
 const paymentMethods = ref([
     {
@@ -94,10 +117,25 @@ const deleteMethod = (id) => {
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex items-center gap-4 mt-4 px-2">
-                        <button class="text-sm font-bold text-gray-500 hover:text-brand-pink transition">Edit</button>
-                        <span class="text-gray-300">|</span>
-                        <button @click="deleteMethod(card.id)" class="text-sm font-bold text-gray-400 hover:text-red-500 transition">Remove</button>
+                    <div class="flex items-center justify-end mt-4 px-2">
+                        <Dropdown align="right" width="48">
+                            <template #trigger>
+                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                            </template>
+                            <template #content>
+                                <DropdownLink as="button" @click="openEditModal(card.id)">
+                                    Edit Details
+                                </DropdownLink>
+                                <div class="border-t border-slate-100"></div>
+                                <DropdownLink as="button" @click="openRemoveModal(card.id)" class="!text-red-600 hover:!bg-red-50">
+                                    Remove
+                                </DropdownLink>
+                            </template>
+                        </Dropdown>
                     </div>
                 </div>
 
@@ -111,8 +149,21 @@ const deleteMethod = (id) => {
                         <p class="text-xs text-gray-500 uppercase tracking-wide font-bold">PayPal Connected</p>
                     </div>
                     <!-- Actions -->
-                    <div class="flex items-center gap-4 mt-4 px-2">
-                        <button class="text-sm font-bold text-gray-400 hover:text-red-500 transition">Disconnect</button>
+                    <div class="flex items-center justify-end mt-4 px-2">
+                        <Dropdown align="right" width="48">
+                            <template #trigger>
+                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                            </template>
+                            <template #content>
+                                <DropdownLink as="button" @click="openDisconnectModal('PayPal')" class="!text-red-600 hover:!bg-red-50">
+                                    Disconnect
+                                </DropdownLink>
+                            </template>
+                        </Dropdown>
                     </div>
                 </div>
 
@@ -151,6 +202,45 @@ const deleteMethod = (id) => {
                             <button type="submit" class="px-6 py-2.5 bg-brand-pink text-white rounded-xl font-bold hover:bg-brand-pink-hover transition shadow-md">Add Card</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Edit Modal Placeholder -->
+            <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="showEditModal = false"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Edit Payment Method</h3>
+                    <p class="text-sm text-gray-600 mb-6">Editing payment method ID: {{ activeItem }}</p>
+                    <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                        <button type="button" @click="showEditModal = false" class="px-6 py-2.5 text-gray-600 font-bold text-sm hover:text-gray-900 transition">Cancel</button>
+                        <button type="button" @click="showEditModal = false" class="px-6 py-2.5 bg-brand-pink text-white rounded-xl font-bold hover:bg-brand-pink-hover transition shadow-md">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Remove Modal Placeholder -->
+            <div v-if="showRemoveModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="showRemoveModal = false"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Confirm Removal</h3>
+                    <p class="text-sm text-gray-600 mb-6">Are you sure you want to remove this payment method?</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" @click="showRemoveModal = false" class="px-6 py-2.5 text-gray-600 font-bold text-sm hover:text-gray-900 transition">Cancel</button>
+                        <button type="button" @click="deleteMethod(activeItem); showRemoveModal = false" class="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-md">Remove</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Disconnect Modal Placeholder -->
+            <div v-if="showDisconnectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="showDisconnectModal = false"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Confirm Disconnect</h3>
+                    <p class="text-sm text-gray-600 mb-6">Are you sure you want to disconnect {{ activeItem }}?</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" @click="showDisconnectModal = false" class="px-6 py-2.5 text-gray-600 font-bold text-sm hover:text-gray-900 transition">Cancel</button>
+                        <button type="button" @click="showDisconnectModal = false" class="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-md">Disconnect</button>
+                    </div>
                 </div>
             </div>
 

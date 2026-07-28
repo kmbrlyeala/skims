@@ -93,27 +93,33 @@ Route::middleware([
         ->prefix('inventory-manager')
         ->name('inventory-manager.')
         ->group(function () {
-            Route::get('/', [DashboardController::class, 'inventoryManager'])->name('dashboard');
+            Route::get('/', [\App\Http\Controllers\InventoryManager\DashboardController::class, 'index'])->name('dashboard');
+            
+            Route::get('products', [\App\Http\Controllers\InventoryManager\ProductController::class, 'index'])->name('products.index');
+            Route::post('products', [\App\Http\Controllers\InventoryManager\ProductController::class, 'store'])->name('products.store');
+            Route::get('products/{product}', [\App\Http\Controllers\InventoryManager\ProductController::class, 'show'])->name('products.show');
+            Route::put('products/{product}', [\App\Http\Controllers\InventoryManager\ProductController::class, 'update'])->name('products.update');
+            Route::delete('products/{product}', [\App\Http\Controllers\InventoryManager\ProductController::class, 'destroy'])->name('products.destroy');
 
             Route::get('goods-receipts/create', [\App\Http\Controllers\InventoryManager\GoodsReceiptController::class, 'create'])->name('goods-receipts.create');
             Route::post('goods-receipts', [\App\Http\Controllers\InventoryManager\GoodsReceiptController::class, 'store'])->name('goods-receipts.store');
 
             Route::get('supply-inventory', [\App\Http\Controllers\InventoryManager\InventoryController::class, 'index'])->name('supply-inventory.index');
-            Route::patch('supply-inventory/{inventory}', [\App\Http\Controllers\InventoryManager\InventoryController::class, 'update'])->name('supply-inventory.update');
+            Route::post('supply-inventory/{product}/transaction', [\App\Http\Controllers\InventoryManager\InventoryController::class, 'transaction'])->name('supply-inventory.transaction');
 
             // Real Supply Chain Controllers (Shared with Admin)
             Route::get('purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
             Route::get('purchase-requests/create', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'create'])->name('purchase-requests.create');
             Route::post('purchase-requests', [\App\Http\Controllers\Admin\SupplyChain\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
-            // Note: IMs don't have approve/reject routes; those are admin-only in the UI, but the controller checks roles anyway.
-
+            
             Route::get('purchase-orders', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
             Route::get('purchase-orders/{purchaseOrder}', [\App\Http\Controllers\Admin\SupplyChain\PurchaseOrderController::class, 'show'])->name('purchase-orders.show');
 
-            // UI Mockup Routes for IM
-            Route::get('stock-movement', [\App\Http\Controllers\InventoryManager\UiMockupController::class, 'stockMovement'])->name('stock-movement.index');
-            Route::get('low-stock', [\App\Http\Controllers\InventoryManager\UiMockupController::class, 'lowStock'])->name('low-stock.index');
-            Route::get('reports', [\App\Http\Controllers\InventoryManager\UiMockupController::class, 'reports'])->name('reports.index');
+            Route::get('reports', [\App\Http\Controllers\InventoryManager\ReportController::class, 'index'])->name('reports.index');
+            
+            // UI Mockup Routes for IM -> Transitioning to real controllers
+            Route::get('stock-movement', [\App\Http\Controllers\InventoryManager\StockMovementController::class, 'index'])->name('stock-movement.index');
+            Route::get('low-stock', [\App\Http\Controllers\InventoryManager\ReportController::class, 'index'])->name('low-stock.index');
         });
 
     /*

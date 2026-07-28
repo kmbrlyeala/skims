@@ -2,6 +2,23 @@
 import CustomerLayout from '@/Layouts/CustomerLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import DialogModal from '@/Components/DialogModal.vue';
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
+
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const activeItem = ref(null);
+
+const openEditModal = (item) => {
+    activeItem.value = item;
+    showEditModal.value = true;
+};
+
+const openDeleteModal = (item) => {
+    activeItem.value = item;
+    showDeleteModal.value = true;
+};
 
 const addresses = ref([
     {
@@ -86,10 +103,25 @@ const deleteAddress = (id) => {
                         <p class="pt-2 text-gray-500">{{ address.phone }}</p>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
-                        <button class="text-sm font-bold text-gray-600 hover:text-brand-pink transition">Edit</button>
-                        <span class="text-gray-300">|</span>
-                        <button @click="deleteAddress(address.id)" class="text-sm font-bold text-gray-400 hover:text-red-500 transition">Delete</button>
+                    <div class="flex items-center justify-end pt-4 border-t border-gray-100">
+                        <Dropdown align="right" width="48">
+                            <template #trigger>
+                                <button class="p-1.5 text-slate-400 hover:text-slate-600 transition-colors bg-white border border-slate-200 rounded shadow-sm hover:shadow" title="Actions">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                    </svg>
+                                </button>
+                            </template>
+                            <template #content>
+                                <DropdownLink as="button" @click="openEditModal(address.id)">
+                                    Edit Address
+                                </DropdownLink>
+                                <div class="border-t border-slate-100"></div>
+                                <DropdownLink as="button" @click="openDeleteModal(address.id)" class="!text-red-600 hover:!bg-red-50">
+                                    Delete
+                                </DropdownLink>
+                            </template>
+                        </Dropdown>
                     </div>
                 </div>
             </div>
@@ -131,6 +163,32 @@ const deleteAddress = (id) => {
                             <button type="submit" class="px-6 py-2.5 bg-brand-pink text-white rounded-xl font-bold hover:bg-brand-pink-hover transition shadow-md">Save Address</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Edit Modal Placeholder -->
+            <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="showEditModal = false"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6">Edit Address</h3>
+                    <p class="text-sm text-gray-600 mb-6">Editing address ID: {{ activeItem }}</p>
+                    <div class="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                        <button type="button" @click="showEditModal = false" class="px-6 py-2.5 text-gray-600 font-bold text-sm hover:text-gray-900 transition">Cancel</button>
+                        <button type="button" @click="showEditModal = false" class="px-6 py-2.5 bg-brand-pink text-white rounded-xl font-bold hover:bg-brand-pink-hover transition shadow-md">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Modal Placeholder -->
+            <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" @click="showDeleteModal = false"></div>
+                <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden p-8 text-center">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Confirm Deletion</h3>
+                    <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete this address? This action cannot be undone.</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="button" @click="showDeleteModal = false" class="px-6 py-2.5 text-gray-600 font-bold text-sm hover:text-gray-900 transition">Cancel</button>
+                        <button type="button" @click="deleteAddress(activeItem); showDeleteModal = false" class="px-6 py-2.5 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition shadow-md">Delete</button>
+                    </div>
                 </div>
             </div>
 
